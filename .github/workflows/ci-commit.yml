@@ -26,7 +26,7 @@ jobs:
           mvn --batch-mode -DskipTests sonar:sonar
           -Dsonar.host.url=https://sonarcloud.io
           -Dsonar.organization=farao-community
-          -Dsonar.projectKey=farao-community_gridcapa-core-valid-adapter
+          -Dsonar.projectKey=farao-community_gridcapa-core-cc-adapter
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
