@@ -38,7 +38,7 @@
 	<properties>
 		<gridcapa.starter.minio.adapter.version>1.0.0</gridcapa.starter.minio.adapter.version>
 		<task-manager.version>1.13.0</task-manager.version>
-<!--		<core-cc-runner.version>1.0.0</core-cc-runner.version>-->
+		<core-cc-runner.version>1.0.0-SNAPSHOT</core-cc-runner.version>
 	</properties>
 
 	<dependencyManagement>
@@ -53,16 +53,16 @@
 				<artifactId>gridcapa-task-manager-api</artifactId>
 				<version>${task-manager.version}</version>
 			</dependency>
-<!--			<dependency>-->
-<!--				<groupId>com.farao-community.farao</groupId>-->
-<!--				<artifactId>gridcapa-core-cc-spring-boot-starter</artifactId>-->
-<!--				<version>${core-cc-runner.version}</version>-->
-<!--			</dependency>-->
-<!--			<dependency>-->
-<!--				<groupId>com.farao-community.farao</groupId>-->
-<!--				<artifactId>gridcapa-core-cc-api</artifactId>-->
-<!--				<version>${core-cc-runner.version}</version>-->
-<!--			</dependency>-->
+			<dependency>
+				<groupId>com.farao-community.farao</groupId>
+				<artifactId>gridcapa-core-cc-spring-boot-starter</artifactId>
+				<version>${core-cc-runner.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.farao-community.farao</groupId>
+				<artifactId>gridcapa-core-cc-api</artifactId>
+				<version>${core-cc-runner.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>

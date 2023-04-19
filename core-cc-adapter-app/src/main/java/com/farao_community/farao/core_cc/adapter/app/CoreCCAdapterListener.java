@@ -55,7 +55,7 @@ public class CoreCCAdapterListener {
                     || taskDto.getStatus() == TaskStatus.ERROR) {
                 LOGGER.info("Handling automatic run request on TS {} ", taskDto.getTimestamp());
                 CoreCCRequest request = getAutomaticCoreCCRequest(taskDto);
-                coreCCClient.run(request);
+                coreCcClient.run(request);
             } else {
                 LOGGER.warn("Failed to handle automatic run request on timestamp {} because it is not ready yet", taskDto.getTimestamp());
             }
@@ -71,12 +71,12 @@ public class CoreCCAdapterListener {
                     || taskDto.getStatus() == TaskStatus.ERROR) {
                 LOGGER.info("Handling manual run request on TS {} ", taskDto.getTimestamp());
                 CoreCCRequest request = getManualCoreCCRequest(taskDto);
-                coreCCClient.run(request);
+                coreCcClient.run(request);
             } else {
                 LOGGER.warn("Failed to handle manual run request on timestamp {} because it is not ready yet", taskDto.getTimestamp());
             }
         } catch (Exception e) {
-            throw new CoreCCdapterException(String.format("Error during handling manual run request %s on TS ", taskDto.getTimestamp()), e);
+            throw new CoreCCAdapterException(String.format("Error during handling manual run request %s on TS ", taskDto.getTimestamp()), e);
         }
 
     }

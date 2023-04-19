@@ -51,22 +51,29 @@ class CoreCCAdapterListenerTest {
     private String cgmFileType;
     private String cbcoraFileType;
     private String glskFileType;
-    private String studyPointsFileType;
+    private String raorequestFileType;
+    private String virtualhubFileType;
+
     private String refprogFileType;
     private String cgmFileName;
     private String cbcoraFileName;
     private String glskFileName;
-    private String studyPointsFileName;
+    private String raorequestFileName;
+    private String virtualhubFileName;
     private String refprogFileName;
     private String cgmFileUrl;
     private String cbcoraFileUrl;
     private String glskFileUrl;
-    private String studyPointsFileUrl;
+    private String raorequestFileUrl;
+    private String virtualhubFileUrl;
+
     private String refprogFileUrl;
     private String cgmFilePath;
     private String cbcoraFilePath;
     private String glskFilePath;
-    private String studyPointsFilePath;
+    private String raorequestFilePath;
+    private String virtualhubFilePath;
+
     private String refprogFilePath;
 
     public TaskDto createTaskDtoWithStatus(TaskStatus status) {
@@ -76,8 +83,9 @@ class CoreCCAdapterListenerTest {
         processFiles.add(new ProcessFileDto(cgmFilePath, cgmFileType, ProcessFileStatus.VALIDATED, cgmFileName, timestamp));
         processFiles.add(new ProcessFileDto(cbcoraFilePath, cbcoraFileType, ProcessFileStatus.VALIDATED, cbcoraFileName, timestamp));
         processFiles.add(new ProcessFileDto(glskFilePath, glskFileType, ProcessFileStatus.VALIDATED, glskFileName, timestamp));
-        processFiles.add(new ProcessFileDto(studyPointsFilePath, studyPointsFileType, ProcessFileStatus.VALIDATED, studyPointsFileName, timestamp));
         processFiles.add(new ProcessFileDto(refprogFilePath, refprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
+        processFiles.add(new ProcessFileDto(raorequestFilePath, raorequestFileType, ProcessFileStatus.VALIDATED, raorequestFileName, timestamp));
+        processFiles.add(new ProcessFileDto(virtualhubFilePath, virtualhubFileType, ProcessFileStatus.VALIDATED, virtualhubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
         return new TaskDto(id, timestamp, status, null, processFiles, null, processEvents);
     }
@@ -87,32 +95,37 @@ class CoreCCAdapterListenerTest {
         cgmFileType = "CGM";
         cbcoraFileType = "CBCORA";
         glskFileType = "GLSK";
-        studyPointsFileType = "STUDY-POINTS";
         refprogFileType = "REFPROG";
+        raorequestFileType = "RAOREQUEST";
+        virtualhubFileType = "VIRTUALHUB";
 
         cgmFileName = "cgm";
         cbcoraFileName = "cbcora";
         glskFileName = "glsk";
-        studyPointsFileName = "study points";
         refprogFileName = "refprog";
+        raorequestFileName = "raorequest";
+        virtualhubFileName = "virtualhub";
 
         cgmFilePath = "/CGM";
         cbcoraFilePath = "/CBCORA";
         glskFilePath = "/GLSK";
-        studyPointsFilePath = "/STUDYPOINTS";
         refprogFilePath = "/REFPROG";
+        raorequestFilePath = "/RAOREQUEST";
+        virtualhubFilePath = "/VIRTUALHUB";
 
         cgmFileUrl = "file://CGM/cgm.uct";
         cbcoraFileUrl = "file://CBCORA/cbcora.xml";
         glskFileUrl = "file://GLSK/glsk.xml";
-        studyPointsFileUrl = "file://STUDYPOINTS/study_points.csv";
         refprogFileUrl = "file://REFPROG/refprog.xml";
+        raorequestFileUrl = "file://RAOREQUEST/raorequest.xml";
+        virtualhubFileUrl = "file://VIRTUALHUB/virtualhub.xml";
 
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cgmFilePath, 1)).thenReturn(cgmFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cbcoraFilePath, 1)).thenReturn(cbcoraFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(glskFilePath, 1)).thenReturn(glskFileUrl);
-        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(studyPointsFilePath, 1)).thenReturn(studyPointsFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(refprogFilePath, 1)).thenReturn(refprogFileUrl);
+        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(raorequestFilePath, 1)).thenReturn(raorequestFileUrl);
+        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(virtualhubFilePath, 1)).thenReturn(virtualhubFileUrl);
     }
 
     @Test
@@ -141,8 +154,9 @@ class CoreCCAdapterListenerTest {
         processFiles.add(new ProcessFileDto(cgmFilePath, cgmFileType, ProcessFileStatus.VALIDATED, cgmFileName, timestamp));
         processFiles.add(new ProcessFileDto(cbcoraFilePath, cbcoraFileType, ProcessFileStatus.VALIDATED, cbcoraFileName, timestamp));
         processFiles.add(new ProcessFileDto(glskFilePath, glskFileType, ProcessFileStatus.VALIDATED, glskFileName, timestamp));
-        processFiles.add(new ProcessFileDto(studyPointsFilePath, studyPointsFileType, ProcessFileStatus.VALIDATED, studyPointsFileName, timestamp));
         processFiles.add(new ProcessFileDto(refprogFilePath, wrongRefprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
+        processFiles.add(new ProcessFileDto(raorequestFilePath, raorequestFileType, ProcessFileStatus.VALIDATED, raorequestFileName, timestamp));
+        processFiles.add(new ProcessFileDto(virtualhubFilePath, virtualhubFilePath, ProcessFileStatus.VALIDATED, virtualhubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
         TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, null, processFiles, null, processEvents);
         Assertions.assertThrows(IllegalStateException.class, () -> coreCCAdapterListener.getManualCoreCCRequest(taskDto));
