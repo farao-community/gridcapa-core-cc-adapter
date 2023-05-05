@@ -103,21 +103,27 @@ public class CoreCCAdapterListener {
             String fileUrl = minioAdapter.generatePreSignedUrlFromFullMinioPath(processFileDto.getFilePath(), 1);
             switch (fileType) {
                 case "CGM":
+                    LOGGER.info("Received CGM");
                     cgm = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "CBCORA":
+                    LOGGER.info("Received CBCORA");
                     cbcora = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "GLSK":
+                    LOGGER.info("Received GLSK");
                     glsk = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "REFPROG":
+                    LOGGER.info("Received REFPROG");
                     refprog = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "RAOREQUEST":
+                    LOGGER.info("Received RAOREQUEST");
                     raoRequest = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "VIRTUALHUB":
+                    LOGGER.info("Received VIRTUALHUB");
                     virtualHub = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 default:

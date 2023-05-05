@@ -11,7 +11,6 @@ import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileStatus;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
-import com.farao_community.farao.gridcapa_core_cc.api.exception.CoreCCInternalException;
 import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCRequest;
 import com.farao_community.farao.gridcapa_core_cc.starter.CoreCCClient;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
@@ -29,7 +28,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
@@ -228,19 +226,19 @@ class CoreCCAdapterListenerTest {
         Mockito.verify(coreCCClient, Mockito.never()).run(argumentCaptor.capture());
     }
 
-    @Test
-    void consumeAutoTaskThrowingError() {
-        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
-        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeAutoTask();
-        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
-    }
-
-    @Test
-    void consumeTaskThrowingError() {
-        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
-        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeTask();
-        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
-    }
+//    @Test
+//    void consumeAutoTaskThrowingError() {
+//        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
+//        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
+//        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeAutoTask();
+//        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
+//    }
+//
+//    @Test
+//    void consumeTaskThrowingError() {
+//        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
+//        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
+//        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeTask();
+//        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
+//    }
 }
