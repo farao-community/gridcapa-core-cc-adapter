@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>gridcapa-core-cc-adapter</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>gridcapa-core-cc-adapter</name>
 	<description>Application that turns a RabbitMQ request from a TaskDto to a CoreCCRequest</description>
 	<packaging>pom</packaging>
