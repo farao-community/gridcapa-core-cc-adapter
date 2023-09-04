@@ -51,8 +51,8 @@ public class CoreCCAdapterListener {
     private void handleAutoTask(TaskDto taskDto) {
         try {
             if (taskDto.getStatus() == TaskStatus.READY
-                    || taskDto.getStatus() == TaskStatus.SUCCESS
-                    || taskDto.getStatus() == TaskStatus.ERROR) {
+                || taskDto.getStatus() == TaskStatus.SUCCESS
+                || taskDto.getStatus() == TaskStatus.ERROR) {
                 LOGGER.info("Handling automatic run request on TS {} ", taskDto.getTimestamp());
                 CoreCCRequest request = getAutomaticCoreCCRequest(taskDto);
                 coreCCClient.run(request);
@@ -67,8 +67,8 @@ public class CoreCCAdapterListener {
     private void handleManualTask(TaskDto taskDto) {
         try {
             if (taskDto.getStatus() == TaskStatus.READY
-                    || taskDto.getStatus() == TaskStatus.SUCCESS
-                    || taskDto.getStatus() == TaskStatus.ERROR) {
+                || taskDto.getStatus() == TaskStatus.SUCCESS
+                || taskDto.getStatus() == TaskStatus.ERROR) {
                 LOGGER.info("Handling manual run request on TS {} ", taskDto.getTimestamp());
                 CoreCCRequest request = getManualCoreCCRequest(taskDto);
                 coreCCClient.run(request);
@@ -99,7 +99,7 @@ public class CoreCCAdapterListener {
         CoreCCFileResource refprog = null;
         CoreCCFileResource raoRequest = null;
         CoreCCFileResource virtualHub = null;
-      
+
         for (ProcessFileDto processFileDto : processFiles) {
             String fileType = processFileDto.getFileType();
             String fileUrl = minioAdapter.generatePreSignedUrlFromFullMinioPath(processFileDto.getFilePath(), 1);
@@ -133,15 +133,15 @@ public class CoreCCAdapterListener {
             }
         }
         return new CoreCCRequest(
-                id,
-                offsetDateTime,
-                cgm,
-                cbcora,
-                glsk,
-                refprog,
-                raoRequest,
-                virtualHub,
-                isLaunchedAutomatically
+            id,
+            offsetDateTime,
+            cgm,
+            cbcora,
+            glsk,
+            refprog,
+            raoRequest,
+            virtualHub,
+            isLaunchedAutomatically
         );
     }
 }

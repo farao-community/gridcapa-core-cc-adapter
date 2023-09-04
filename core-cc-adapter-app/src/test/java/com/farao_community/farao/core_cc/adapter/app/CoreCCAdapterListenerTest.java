@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, RTE (http://www.rte-france.com)
+ * Copyright (c) 2023, RTE (http://www.rte-france.com)
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -29,6 +29,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
@@ -46,7 +47,7 @@ class CoreCCAdapterListenerTest {
     ArgumentCaptor<CoreCCRequest> argumentCaptor;
 
     @Autowired
-    private com.farao_community.farao.core_cc.adapter.app.CoreCCAdapterListener coreCCAdapterListener;
+    private CoreCCAdapterListener coreCCAdapterListener;
     private String cgmFileType;
     private String cbcoraFileType;
     private String glskFileType;
@@ -83,7 +84,7 @@ class CoreCCAdapterListenerTest {
         processFiles.add(new ProcessFileDto(refprogFilePath, refprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
         processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
-        return new TaskDto(id, timestamp, status, null, processFiles, null, processEvents);
+        return new TaskDto(id, timestamp, status, processFiles, null, processEvents);
     }
 
     @BeforeEach
@@ -112,10 +113,9 @@ class CoreCCAdapterListenerTest {
         cgmFileUrl = "file://CGM/cgm.uct";
         cbcoraFileUrl = "file://CBCORA/cbcora.xml";
         glskFileUrl = "file://GLSK/glsk.xml";
-      
-        raoRequestFileUrl = "file://STUDYPOINTS/raorequest.xml";
+        raoRequestFileUrl = "file://RAOREQUEST/raorequest.xml";
         refprogFileUrl = "file://REFPROG/refprog.xml";
-        virtualHubFileUrl = "file://REFPROG/virtualhub.xml";
+        virtualHubFileUrl = "file://VIRTUALHUB/virtualhub.xml";
 
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cgmFilePath, 1)).thenReturn(cgmFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cbcoraFilePath, 1)).thenReturn(cbcoraFileUrl);
@@ -154,11 +154,8 @@ class CoreCCAdapterListenerTest {
         processFiles.add(new ProcessFileDto(raoRequestFilePath, raoRequestFileType, ProcessFileStatus.VALIDATED, raoRequestFileName, timestamp));
         processFiles.add(new ProcessFileDto(refprogFilePath, wrongRefprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
         processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
-        processFiles.add(new ProcessFileDto(refprogFilePath, wrongRefprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
-        processFiles.add(new ProcessFileDto(raorequestFilePath, raorequestFileType, ProcessFileStatus.VALIDATED, raorequestFileName, timestamp));
-        processFiles.add(new ProcessFileDto(virtualhubFilePath, virtualhubFilePath, ProcessFileStatus.VALIDATED, virtualhubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
-        TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, null, processFiles, null, processEvents);
+        TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, processFiles, null, processEvents);
         Assertions.assertThrows(IllegalStateException.class, () -> coreCCAdapterListener.getManualCoreCCRequest(taskDto));
 
     }
@@ -233,7 +230,7 @@ class CoreCCAdapterListenerTest {
 
     @Test
     void consumeAutoTaskThrowingError() {
-        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
+        Mockito.doThrow(new CoreCCInternalException("message")).when(coreCCClient).run(Mockito.any());
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
         Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeAutoTask();
         Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
@@ -241,7 +238,7 @@ class CoreCCAdapterListenerTest {
 
     @Test
     void consumeTaskThrowingError() {
-        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
+        Mockito.doThrow(new CoreCCInternalException("message")).when(coreCCClient).run(Mockito.any());
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
         Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeTask();
         Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
