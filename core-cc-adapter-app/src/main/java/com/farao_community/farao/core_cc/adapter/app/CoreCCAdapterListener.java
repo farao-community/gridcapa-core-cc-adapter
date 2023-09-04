@@ -30,11 +30,11 @@ import java.util.function.Consumer;
 public class CoreCCAdapterListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CoreCCAdapterListener.class);
-    private final CoreCCClient coreCcClient;
+    private final CoreCCClient coreCCClient;
     private final MinioAdapter minioAdapter;
 
-    public CoreCCAdapterListener(CoreCCClient coreCcClient, MinioAdapter minioAdapter) {
-        this.coreCcClient = coreCcClient;
+    public CoreCCAdapterListener(CoreCCClient coreCCClient, MinioAdapter minioAdapter) {
+        this.coreCCClient = coreCCClient;
         this.minioAdapter = minioAdapter;
     }
 
@@ -51,11 +51,11 @@ public class CoreCCAdapterListener {
     private void handleAutoTask(TaskDto taskDto) {
         try {
             if (taskDto.getStatus() == TaskStatus.READY
-                    || taskDto.getStatus() == TaskStatus.SUCCESS
-                    || taskDto.getStatus() == TaskStatus.ERROR) {
+                || taskDto.getStatus() == TaskStatus.SUCCESS
+                || taskDto.getStatus() == TaskStatus.ERROR) {
                 LOGGER.info("Handling automatic run request on TS {} ", taskDto.getTimestamp());
                 CoreCCRequest request = getAutomaticCoreCCRequest(taskDto);
-                coreCcClient.run(request);
+                coreCCClient.run(request);
             } else {
                 LOGGER.warn("Failed to handle automatic run request on timestamp {} because it is not ready yet", taskDto.getTimestamp());
             }
@@ -67,11 +67,11 @@ public class CoreCCAdapterListener {
     private void handleManualTask(TaskDto taskDto) {
         try {
             if (taskDto.getStatus() == TaskStatus.READY
-                    || taskDto.getStatus() == TaskStatus.SUCCESS
-                    || taskDto.getStatus() == TaskStatus.ERROR) {
+                || taskDto.getStatus() == TaskStatus.SUCCESS
+                || taskDto.getStatus() == TaskStatus.ERROR) {
                 LOGGER.info("Handling manual run request on TS {} ", taskDto.getTimestamp());
                 CoreCCRequest request = getManualCoreCCRequest(taskDto);
-                coreCcClient.run(request);
+                coreCCClient.run(request);
             } else {
                 LOGGER.warn("Failed to handle manual run request on timestamp {} because it is not ready yet", taskDto.getTimestamp());
             }
@@ -97,44 +97,51 @@ public class CoreCCAdapterListener {
         CoreCCFileResource cbcora = null;
         CoreCCFileResource glsk = null;
         CoreCCFileResource refprog = null;
-        CoreCCFileResource raorequest = null;
-        CoreCCFileResource virtualhub = null;
+        CoreCCFileResource raoRequest = null;
+        CoreCCFileResource virtualHub = null;
+
         for (ProcessFileDto processFileDto : processFiles) {
             String fileType = processFileDto.getFileType();
             String fileUrl = minioAdapter.generatePreSignedUrlFromFullMinioPath(processFileDto.getFilePath(), 1);
             switch (fileType) {
                 case "CGM":
+                    LOGGER.info("Received CGM");
                     cgm = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "CBCORA":
+                    LOGGER.info("Received CBCORA");
                     cbcora = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "GLSK":
+                    LOGGER.info("Received GLSK");
                     glsk = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "REFPROG":
+                    LOGGER.info("Received REFPROG");
                     refprog = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "RAOREQUEST":
-                    raorequest = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
+                    LOGGER.info("Received RAOREQUEST");
+                    raoRequest = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 case "VIRTUALHUB":
-                    virtualhub = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
+                    LOGGER.info("Received VIRTUALHUB");
+                    virtualHub = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + processFileDto.getFileType());
             }
         }
         return new CoreCCRequest(
-                id,
-                offsetDateTime,
-                cgm,
-                cbcora,
-                glsk,
-                refprog,
-                raorequest,
-                virtualhub,
-                isLaunchedAutomatically
+            id,
+            offsetDateTime,
+            cgm,
+            cbcora,
+            glsk,
+            refprog,
+            raoRequest,
+            virtualHub,
+            isLaunchedAutomatically
         );
     }
 }

@@ -11,8 +11,8 @@
 
     <artifactId>core-cc-adapter-app</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>Gridcapa Core Capacity Calculation adapter application</name>
-    <description>Application that turns a RabbitMQ request from a TaskDto to a CoreCapacityCalculationRequest</description>
+    <name>Gridcapa Core CC adapter application</name>
+    <description>Application that turns a RabbitMQ request from a TaskDto to a CoreCCRequest</description>
     <url>http://www.farao-community.com</url>
 
     <build>

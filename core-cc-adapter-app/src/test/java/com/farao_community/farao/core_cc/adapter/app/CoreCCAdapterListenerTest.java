@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, RTE (http://www.rte-france.com)
+ * Copyright (c) 2023, RTE (http://www.rte-france.com)
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -51,30 +51,27 @@ class CoreCCAdapterListenerTest {
     private String cgmFileType;
     private String cbcoraFileType;
     private String glskFileType;
-    private String raorequestFileType;
-    private String virtualhubFileType;
-
+    private String raoRequestFileType;
     private String refprogFileType;
+    private String virtualHubFileType;
     private String cgmFileName;
     private String cbcoraFileName;
     private String glskFileName;
-    private String raorequestFileName;
-    private String virtualhubFileName;
+    private String raoRequestFileName;
     private String refprogFileName;
+    private String virtualHubFileName;
     private String cgmFileUrl;
     private String cbcoraFileUrl;
     private String glskFileUrl;
-    private String raorequestFileUrl;
-    private String virtualhubFileUrl;
-
+    private String raoRequestFileUrl;
     private String refprogFileUrl;
+    private String virtualHubFileUrl;
     private String cgmFilePath;
     private String cbcoraFilePath;
     private String glskFilePath;
-    private String raorequestFilePath;
-    private String virtualhubFilePath;
-
+    private String raoRequestFilePath;
     private String refprogFilePath;
+    private String virtualHubFilePath;
 
     public TaskDto createTaskDtoWithStatus(TaskStatus status) {
         UUID id = UUID.randomUUID();
@@ -83,11 +80,11 @@ class CoreCCAdapterListenerTest {
         processFiles.add(new ProcessFileDto(cgmFilePath, cgmFileType, ProcessFileStatus.VALIDATED, cgmFileName, timestamp));
         processFiles.add(new ProcessFileDto(cbcoraFilePath, cbcoraFileType, ProcessFileStatus.VALIDATED, cbcoraFileName, timestamp));
         processFiles.add(new ProcessFileDto(glskFilePath, glskFileType, ProcessFileStatus.VALIDATED, glskFileName, timestamp));
+        processFiles.add(new ProcessFileDto(raoRequestFilePath, raoRequestFileType, ProcessFileStatus.VALIDATED, raoRequestFileName, timestamp));
         processFiles.add(new ProcessFileDto(refprogFilePath, refprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
-        processFiles.add(new ProcessFileDto(raorequestFilePath, raorequestFileType, ProcessFileStatus.VALIDATED, raorequestFileName, timestamp));
-        processFiles.add(new ProcessFileDto(virtualhubFilePath, virtualhubFileType, ProcessFileStatus.VALIDATED, virtualhubFileName, timestamp));
+        processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
-        return new TaskDto(id, timestamp, status, null, processFiles, null, processEvents);
+        return new TaskDto(id, timestamp, status, processFiles, null, processEvents);
     }
 
     @BeforeEach
@@ -95,37 +92,37 @@ class CoreCCAdapterListenerTest {
         cgmFileType = "CGM";
         cbcoraFileType = "CBCORA";
         glskFileType = "GLSK";
+        raoRequestFileType = "RAOREQUEST";
         refprogFileType = "REFPROG";
-        raorequestFileType = "RAOREQUEST";
-        virtualhubFileType = "VIRTUALHUB";
+        virtualHubFileType = "VIRTUALHUB";
 
         cgmFileName = "cgm";
         cbcoraFileName = "cbcora";
         glskFileName = "glsk";
+        raoRequestFileName = "raorequest";
         refprogFileName = "refprog";
-        raorequestFileName = "raorequest";
-        virtualhubFileName = "virtualhub";
+        virtualHubFileName = "virtualhub";
 
         cgmFilePath = "/CGM";
         cbcoraFilePath = "/CBCORA";
         glskFilePath = "/GLSK";
+        raoRequestFilePath = "/RAOREQUEST";
         refprogFilePath = "/REFPROG";
-        raorequestFilePath = "/RAOREQUEST";
-        virtualhubFilePath = "/VIRTUALHUB";
+        virtualHubFilePath = "/VIRTUALHUB";
 
         cgmFileUrl = "file://CGM/cgm.uct";
         cbcoraFileUrl = "file://CBCORA/cbcora.xml";
         glskFileUrl = "file://GLSK/glsk.xml";
+        raoRequestFileUrl = "file://RAOREQUEST/raorequest.xml";
         refprogFileUrl = "file://REFPROG/refprog.xml";
-        raorequestFileUrl = "file://RAOREQUEST/raorequest.xml";
-        virtualhubFileUrl = "file://VIRTUALHUB/virtualhub.xml";
+        virtualHubFileUrl = "file://VIRTUALHUB/virtualhub.xml";
 
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cgmFilePath, 1)).thenReturn(cgmFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cbcoraFilePath, 1)).thenReturn(cbcoraFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(glskFilePath, 1)).thenReturn(glskFileUrl);
+        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(raoRequestFilePath, 1)).thenReturn(raoRequestFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(refprogFilePath, 1)).thenReturn(refprogFileUrl);
-        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(raorequestFilePath, 1)).thenReturn(raorequestFileUrl);
-        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(virtualhubFilePath, 1)).thenReturn(virtualhubFileUrl);
+        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(virtualHubFilePath, 1)).thenReturn(virtualHubFileUrl);
     }
 
     @Test
@@ -154,11 +151,11 @@ class CoreCCAdapterListenerTest {
         processFiles.add(new ProcessFileDto(cgmFilePath, cgmFileType, ProcessFileStatus.VALIDATED, cgmFileName, timestamp));
         processFiles.add(new ProcessFileDto(cbcoraFilePath, cbcoraFileType, ProcessFileStatus.VALIDATED, cbcoraFileName, timestamp));
         processFiles.add(new ProcessFileDto(glskFilePath, glskFileType, ProcessFileStatus.VALIDATED, glskFileName, timestamp));
+        processFiles.add(new ProcessFileDto(raoRequestFilePath, raoRequestFileType, ProcessFileStatus.VALIDATED, raoRequestFileName, timestamp));
         processFiles.add(new ProcessFileDto(refprogFilePath, wrongRefprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
-        processFiles.add(new ProcessFileDto(raorequestFilePath, raorequestFileType, ProcessFileStatus.VALIDATED, raorequestFileName, timestamp));
-        processFiles.add(new ProcessFileDto(virtualhubFilePath, virtualhubFilePath, ProcessFileStatus.VALIDATED, virtualhubFileName, timestamp));
+        processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
-        TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, null, processFiles, null, processEvents);
+        TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, processFiles, null, processEvents);
         Assertions.assertThrows(IllegalStateException.class, () -> coreCCAdapterListener.getManualCoreCCRequest(taskDto));
 
     }
@@ -233,7 +230,7 @@ class CoreCCAdapterListenerTest {
 
     @Test
     void consumeAutoTaskThrowingError() {
-        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
+        Mockito.doThrow(new CoreCCInternalException("message")).when(coreCCClient).run(Mockito.any());
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
         Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeAutoTask();
         Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
@@ -241,7 +238,7 @@ class CoreCCAdapterListenerTest {
 
     @Test
     void consumeTaskThrowingError() {
-        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
+        Mockito.doThrow(new CoreCCInternalException("message")).when(coreCCClient).run(Mockito.any());
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
         Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeTask();
         Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
