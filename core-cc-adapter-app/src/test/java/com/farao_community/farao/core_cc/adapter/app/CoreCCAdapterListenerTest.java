@@ -11,6 +11,7 @@ import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileStatus;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
+import com.farao_community.farao.gridcapa_core_cc.api.exception.CoreCCInternalException;
 import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCRequest;
 import com.farao_community.farao.gridcapa_core_cc.starter.CoreCCClient;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
@@ -111,6 +112,7 @@ class CoreCCAdapterListenerTest {
         cgmFileUrl = "file://CGM/cgm.uct";
         cbcoraFileUrl = "file://CBCORA/cbcora.xml";
         glskFileUrl = "file://GLSK/glsk.xml";
+      
         raoRequestFileUrl = "file://STUDYPOINTS/raorequest.xml";
         refprogFileUrl = "file://REFPROG/refprog.xml";
         virtualHubFileUrl = "file://REFPROG/virtualhub.xml";
@@ -152,6 +154,9 @@ class CoreCCAdapterListenerTest {
         processFiles.add(new ProcessFileDto(raoRequestFilePath, raoRequestFileType, ProcessFileStatus.VALIDATED, raoRequestFileName, timestamp));
         processFiles.add(new ProcessFileDto(refprogFilePath, wrongRefprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
         processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
+        processFiles.add(new ProcessFileDto(refprogFilePath, wrongRefprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
+        processFiles.add(new ProcessFileDto(raorequestFilePath, raorequestFileType, ProcessFileStatus.VALIDATED, raorequestFileName, timestamp));
+        processFiles.add(new ProcessFileDto(virtualhubFilePath, virtualhubFilePath, ProcessFileStatus.VALIDATED, virtualhubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
         TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, null, processFiles, null, processEvents);
         Assertions.assertThrows(IllegalStateException.class, () -> coreCCAdapterListener.getManualCoreCCRequest(taskDto));
@@ -226,19 +231,19 @@ class CoreCCAdapterListenerTest {
         Mockito.verify(coreCCClient, Mockito.never()).run(argumentCaptor.capture());
     }
 
-//    @Test
-//    void consumeAutoTaskThrowingError() {
-//        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
-//        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
-//        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeAutoTask();
-//        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
-//    }
-//
-//    @Test
-//    void consumeTaskThrowingError() {
-//        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
-//        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
-//        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeTask();
-//        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
-//    }
+    @Test
+    void consumeAutoTaskThrowingError() {
+        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
+        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
+        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeAutoTask();
+        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
+    }
+
+    @Test
+    void consumeTaskThrowingError() {
+        Mockito.when(coreCCClient.run(Mockito.any())).thenThrow(new CoreCCInternalException("message"));
+        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
+        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeTask();
+        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
+    }
 }
