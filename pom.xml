@@ -36,7 +36,7 @@
 	</build>
 
 	<properties>
-		<gridcapa.starter.minio.adapter.version>1.0.0</gridcapa.starter.minio.adapter.version>
+		<gridcapa.starter.minio.adapter.version>1.1.0</gridcapa.starter.minio.adapter.version>
 		<task-manager.version>1.20.0</task-manager.version>
 		<core-cc-runner.version>1.0.3</core-cc-runner.version>
 	</properties>
