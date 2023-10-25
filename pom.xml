@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.farao-community.farao</groupId>
 		<artifactId>farao-parent-ws</artifactId>
-		<version>1.4.0</version>
+		<version>1.5.0</version>
 	</parent>
 
 	<artifactId>gridcapa-core-cc-adapter</artifactId>
@@ -36,9 +36,9 @@
 	</build>
 
 	<properties>
-		<gridcapa.starter.minio.adapter.version>1.0.0</gridcapa.starter.minio.adapter.version>
-		<task-manager.version>1.20.0</task-manager.version>
-		<core-cc-runner.version>1.0.3</core-cc-runner.version>
+		<gridcapa.starter.minio.adapter.version>1.1.1</gridcapa.starter.minio.adapter.version>
+		<task-manager.version>1.21.1</task-manager.version>
+		<core-cc-runner.version>1.0.4</core-cc-runner.version>
 	</properties>
 
 	<dependencyManagement>
