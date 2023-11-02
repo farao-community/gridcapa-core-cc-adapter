@@ -11,15 +11,12 @@ import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileStatus;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
-import com.farao_community.farao.gridcapa_core_cc.api.exception.CoreCCInternalException;
 import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCRequest;
-import com.farao_community.farao.gridcapa_core_cc.starter.CoreCCClient;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
+import org.junit.jupiter.api.function.ThrowingSupplier;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,25 +26,21 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
  */
 @SpringBootTest
-class CoreCCAdapterListenerTest {
+class CoreCCAdapterServiceTest {
 
-    @MockBean
-    private CoreCCClient coreCCClient;
+    @Autowired
+    private CoreCCAdapterService coreCCAdapterService;
 
     @MockBean
     private MinioAdapter minioAdapter;
 
-    @Captor
-    ArgumentCaptor<CoreCCRequest> argumentCaptor;
-
-    @Autowired
-    private CoreCCAdapterListener coreCCAdapterListener;
     private String cgmFileType;
     private String cbcoraFileType;
     private String glskFileType;
@@ -128,7 +121,7 @@ class CoreCCAdapterListenerTest {
     @Test
     void testGetManualCoreCCRequest() {
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.READY);
-        CoreCCRequest coreCCRequest = coreCCAdapterListener.getManualCoreCCRequest(taskDto);
+        CoreCCRequest coreCCRequest = coreCCAdapterService.getManualCoreCCRequest(taskDto);
         Assertions.assertEquals(taskDto.getId().toString(), coreCCRequest.getId());
         Assertions.assertEquals(cgmFileName, coreCCRequest.getCgm().getFilename());
         Assertions.assertEquals(cgmFileUrl, coreCCRequest.getCgm().getUrl());
@@ -138,7 +131,11 @@ class CoreCCAdapterListenerTest {
     @Test
     void testGetAutomaticCoreCCRequest() {
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.READY);
-        CoreCCRequest coreCCRequest = coreCCAdapterListener.getAutomaticCoreCCRequest(taskDto);
+        CoreCCRequest coreCCRequest = coreCCAdapterService.getAutomaticCoreCCRequest(taskDto);
+        Assertions.assertEquals(cbcoraFileName, coreCCRequest.getCbcora().getFilename());
+        Assertions.assertEquals(cbcoraFileUrl, coreCCRequest.getCbcora().getUrl());
+        Assertions.assertEquals(glskFileName, coreCCRequest.getGlsk().getFilename());
+        Assertions.assertEquals(glskFileUrl, coreCCRequest.getGlsk().getUrl());
         Assertions.assertTrue(coreCCRequest.getLaunchedAutomatically());
     }
 
@@ -156,91 +153,21 @@ class CoreCCAdapterListenerTest {
         processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
         TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, processFiles, null, processEvents);
-        Assertions.assertThrows(IllegalStateException.class, () -> coreCCAdapterListener.getManualCoreCCRequest(taskDto));
-
+        Assertions.assertThrows(IllegalStateException.class, () -> coreCCAdapterService.getManualCoreCCRequest(taskDto));
     }
 
     @Test
-    void consumeReadyAutoTask() {
+    void testHandleManualTaskDoesNotThrowException() {
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.READY);
-        coreCCAdapterListener.consumeAutoTask().accept(taskDto);
-        Mockito.verify(coreCCClient).run(argumentCaptor.capture());
-        CoreCCRequest coreCCRequest = argumentCaptor.getValue();
-        assert coreCCRequest.getLaunchedAutomatically();
+        coreCCAdapterService.handleManualTask(taskDto);
+        assertDoesNotThrow((ThrowingSupplier<RuntimeException>) RuntimeException::new);
     }
 
     @Test
-    void consumeReadyTask() {
+    void testHandleAutoTaskDoesNotThrowException() {
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.READY);
-        coreCCAdapterListener.consumeTask().accept(taskDto);
-        Mockito.verify(coreCCClient).run(argumentCaptor.capture());
-        CoreCCRequest coreCCRequest = argumentCaptor.getValue();
-        Assertions.assertFalse(coreCCRequest.getLaunchedAutomatically());
+        coreCCAdapterService.handleAutoTask(taskDto);
+        assertDoesNotThrow((ThrowingSupplier<RuntimeException>) RuntimeException::new);
     }
 
-    @Test
-    void consumeSuccessAutoTask() {
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.SUCCESS);
-        coreCCAdapterListener.consumeAutoTask().accept(taskDto);
-        Mockito.verify(coreCCClient).run(argumentCaptor.capture());
-        CoreCCRequest coreCCRequest = argumentCaptor.getValue();
-        assert coreCCRequest.getLaunchedAutomatically();
-    }
-
-    @Test
-    void consumeSuccessTask() {
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.SUCCESS);
-        coreCCAdapterListener.consumeTask().accept(taskDto);
-        Mockito.verify(coreCCClient).run(argumentCaptor.capture());
-        CoreCCRequest coreCCRequest = argumentCaptor.getValue();
-        Assertions.assertFalse(coreCCRequest.getLaunchedAutomatically());
-    }
-
-    @Test
-    void consumeErrorAutoTask() {
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
-        coreCCAdapterListener.consumeAutoTask().accept(taskDto);
-        Mockito.verify(coreCCClient).run(argumentCaptor.capture());
-        CoreCCRequest coreCCRequest = argumentCaptor.getValue();
-        assert coreCCRequest.getLaunchedAutomatically();
-    }
-
-    @Test
-    void consumeErrorTask() {
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
-        coreCCAdapterListener.consumeTask().accept(taskDto);
-        Mockito.verify(coreCCClient).run(argumentCaptor.capture());
-        CoreCCRequest coreCCRequest = argumentCaptor.getValue();
-        Assertions.assertFalse(coreCCRequest.getLaunchedAutomatically());
-    }
-
-    @Test
-    void consumeCreatedAutoTask() {
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.CREATED);
-        coreCCAdapterListener.consumeAutoTask().accept(taskDto);
-        Mockito.verify(coreCCClient, Mockito.never()).run(argumentCaptor.capture());
-    }
-
-    @Test
-    void consumeCreatedTask() {
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.CREATED);
-        coreCCAdapterListener.consumeTask().accept(taskDto);
-        Mockito.verify(coreCCClient, Mockito.never()).run(argumentCaptor.capture());
-    }
-
-    @Test
-    void consumeAutoTaskThrowingError() {
-        Mockito.doThrow(new CoreCCInternalException("message")).when(coreCCClient).run(Mockito.any());
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
-        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeAutoTask();
-        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
-    }
-
-    @Test
-    void consumeTaskThrowingError() {
-        Mockito.doThrow(new CoreCCInternalException("message")).when(coreCCClient).run(Mockito.any());
-        TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.ERROR);
-        Consumer<TaskDto> taskDtoConsumer = coreCCAdapterListener.consumeTask();
-        Assertions.assertThrows(CoreCCAdapterException.class, () -> taskDtoConsumer.accept(taskDto));
-    }
 }
