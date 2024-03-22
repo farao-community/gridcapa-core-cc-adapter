@@ -10,6 +10,7 @@ import com.farao_community.farao.gridcapa.task_manager.api.ProcessEventDto;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileStatus;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
+import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCRequest;
 import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
@@ -77,7 +78,8 @@ class CoreCCAdapterServiceTest {
         processFiles.add(new ProcessFileDto(refprogFilePath, refprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
         processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
-        return new TaskDto(id, timestamp, status, processFiles, null, processEvents);
+        List<TaskParameterDto> parameters = new ArrayList<>();
+        return new TaskDto(id, timestamp, status, processFiles, null, processEvents, parameters);
     }
 
     @BeforeEach
@@ -152,7 +154,8 @@ class CoreCCAdapterServiceTest {
         processFiles.add(new ProcessFileDto(refprogFilePath, wrongRefprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
         processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
-        TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, processFiles, null, processEvents);
+        List<TaskParameterDto> parameters = new ArrayList<>();
+        TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, processFiles, null, processEvents, parameters);
         Assertions.assertThrows(IllegalStateException.class, () -> coreCCAdapterService.getManualCoreCCRequest(taskDto));
     }
 
