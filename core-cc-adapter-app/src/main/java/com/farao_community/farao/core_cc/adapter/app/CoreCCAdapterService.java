@@ -87,16 +87,22 @@ public class CoreCCAdapterService {
         OffsetDateTime offsetDateTime = taskDto.getTimestamp();
         List<ProcessFileDto> processFiles = taskDto.getInputs();
         CoreCCFileResource cgm = null;
+        CoreCCFileResource dcCgm = null;
         CoreCCFileResource cbcora = null;
         CoreCCFileResource glsk = null;
         CoreCCFileResource refprog = null;
         CoreCCFileResource raoRequest = null;
         CoreCCFileResource virtualHub = null;
-
         for (ProcessFileDto processFileDto : processFiles) {
             String fileType = processFileDto.getFileType();
-            String fileUrl = minioAdapter.generatePreSignedUrlFromFullMinioPath(processFileDto.getFilePath(), 1);
+            String fileUrl = computeFileUrl(processFileDto);
             switch (fileType) {
+                case "DCCGM":
+                    if (null != fileUrl) {
+                        LOGGER.info("Received DC CGM");
+                        dcCgm = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
+                    }
+                    break;
                 case "CGM":
                     LOGGER.info("Received CGM");
                     cgm = new CoreCCFileResource(processFileDto.getFilename(), fileUrl);
@@ -129,12 +135,25 @@ public class CoreCCAdapterService {
                 id,
                 offsetDateTime,
                 cgm,
+                dcCgm,
                 cbcora,
                 glsk,
                 refprog,
                 raoRequest,
                 virtualHub,
-                isLaunchedAutomatically
+                isLaunchedAutomatically,
+                taskDto.getParameters()
         );
+    }
+
+    /**
+     * Resolve file url, dealing with optional DC CGM input file.
+     *
+     * @param processFileDto
+     * @return
+     */
+    private String computeFileUrl(final ProcessFileDto processFileDto) {
+        return "DCCGM".equals(processFileDto.getFileType()) && null == processFileDto.getFilePath() ?
+                null : minioAdapter.generatePreSignedUrlFromFullMinioPath(processFileDto.getFilePath(), 1);
     }
 }
