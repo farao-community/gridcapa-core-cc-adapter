@@ -43,24 +43,28 @@ class CoreCCAdapterServiceTest {
     private MinioAdapter minioAdapter;
 
     private String cgmFileType;
+    private String dcCgmFileType;
     private String cbcoraFileType;
     private String glskFileType;
     private String raoRequestFileType;
     private String refprogFileType;
     private String virtualHubFileType;
     private String cgmFileName;
+    private String dcCgmFileName;
     private String cbcoraFileName;
     private String glskFileName;
     private String raoRequestFileName;
     private String refprogFileName;
     private String virtualHubFileName;
     private String cgmFileUrl;
+    private String dcCgmFileUrl;
     private String cbcoraFileUrl;
     private String glskFileUrl;
     private String raoRequestFileUrl;
     private String refprogFileUrl;
     private String virtualHubFileUrl;
     private String cgmFilePath;
+    private String dcCgmFilePath;
     private String cbcoraFilePath;
     private String glskFilePath;
     private String raoRequestFilePath;
@@ -72,6 +76,23 @@ class CoreCCAdapterServiceTest {
         OffsetDateTime timestamp = OffsetDateTime.parse("2021-12-07T14:30Z");
         List<ProcessFileDto> processFiles = new ArrayList<>();
         processFiles.add(new ProcessFileDto(cgmFilePath, cgmFileType, ProcessFileStatus.VALIDATED, cgmFileName, timestamp));
+        processFiles.add(new ProcessFileDto(dcCgmFilePath, dcCgmFileType, ProcessFileStatus.VALIDATED, dcCgmFileName, timestamp));
+        processFiles.add(new ProcessFileDto(cbcoraFilePath, cbcoraFileType, ProcessFileStatus.VALIDATED, cbcoraFileName, timestamp));
+        processFiles.add(new ProcessFileDto(glskFilePath, glskFileType, ProcessFileStatus.VALIDATED, glskFileName, timestamp));
+        processFiles.add(new ProcessFileDto(raoRequestFilePath, raoRequestFileType, ProcessFileStatus.VALIDATED, raoRequestFileName, timestamp));
+        processFiles.add(new ProcessFileDto(refprogFilePath, refprogFileType, ProcessFileStatus.VALIDATED, refprogFileName, timestamp));
+        processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
+        List<ProcessEventDto> processEvents = new ArrayList<>();
+        List<TaskParameterDto> parameters = new ArrayList<>();
+        return new TaskDto(id, timestamp, status, processFiles, null, processEvents, parameters);
+    }
+
+    public TaskDto createTaskDtoWithStatusWithDcCgmAbsent(TaskStatus status) {
+        UUID id = UUID.randomUUID();
+        OffsetDateTime timestamp = OffsetDateTime.parse("2021-12-07T14:30Z");
+        List<ProcessFileDto> processFiles = new ArrayList<>();
+        processFiles.add(new ProcessFileDto(cgmFilePath, cgmFileType, ProcessFileStatus.VALIDATED, cgmFileName, timestamp));
+        processFiles.add(new ProcessFileDto(null, dcCgmFileType, null, null, null));
         processFiles.add(new ProcessFileDto(cbcoraFilePath, cbcoraFileType, ProcessFileStatus.VALIDATED, cbcoraFileName, timestamp));
         processFiles.add(new ProcessFileDto(glskFilePath, glskFileType, ProcessFileStatus.VALIDATED, glskFileName, timestamp));
         processFiles.add(new ProcessFileDto(raoRequestFilePath, raoRequestFileType, ProcessFileStatus.VALIDATED, raoRequestFileName, timestamp));
@@ -85,6 +106,7 @@ class CoreCCAdapterServiceTest {
     @BeforeEach
     void setUp() {
         cgmFileType = "CGM";
+        dcCgmFileType = "DCCGM";
         cbcoraFileType = "CBCORA";
         glskFileType = "GLSK";
         raoRequestFileType = "RAOREQUEST";
@@ -92,6 +114,7 @@ class CoreCCAdapterServiceTest {
         virtualHubFileType = "VIRTUALHUB";
 
         cgmFileName = "cgm";
+        dcCgmFileName = "dccgm";
         cbcoraFileName = "cbcora";
         glskFileName = "glsk";
         raoRequestFileName = "raorequest";
@@ -99,6 +122,7 @@ class CoreCCAdapterServiceTest {
         virtualHubFileName = "virtualhub";
 
         cgmFilePath = "/CGM";
+        dcCgmFilePath = "/DCCGM";
         cbcoraFilePath = "/CBCORA";
         glskFilePath = "/GLSK";
         raoRequestFilePath = "/RAOREQUEST";
@@ -106,6 +130,7 @@ class CoreCCAdapterServiceTest {
         virtualHubFilePath = "/VIRTUALHUB";
 
         cgmFileUrl = "file://CGM/cgm.uct";
+        dcCgmFileUrl = "file://DCCGM/dccgm.uct";
         cbcoraFileUrl = "file://CBCORA/cbcora.xml";
         glskFileUrl = "file://GLSK/glsk.xml";
         raoRequestFileUrl = "file://RAOREQUEST/raorequest.xml";
@@ -113,6 +138,7 @@ class CoreCCAdapterServiceTest {
         virtualHubFileUrl = "file://VIRTUALHUB/virtualhub.xml";
 
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cgmFilePath, 1)).thenReturn(cgmFileUrl);
+        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(dcCgmFilePath, 1)).thenReturn(dcCgmFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cbcoraFilePath, 1)).thenReturn(cbcoraFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(glskFilePath, 1)).thenReturn(glskFileUrl);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(raoRequestFilePath, 1)).thenReturn(raoRequestFileUrl);
@@ -128,6 +154,17 @@ class CoreCCAdapterServiceTest {
         Assertions.assertEquals(cgmFileName, coreCCRequest.getCgm().getFilename());
         Assertions.assertEquals(cgmFileUrl, coreCCRequest.getCgm().getUrl());
         Assertions.assertFalse(coreCCRequest.getLaunchedAutomatically());
+    }
+
+    @Test
+    void testGetManualCoreCCRequestWithoutDcCgm() {
+        TaskDto taskDto = createTaskDtoWithStatusWithDcCgmAbsent(TaskStatus.READY);
+        CoreCCRequest coreCCRequest = coreCCAdapterService.getManualCoreCCRequest(taskDto);
+        Assertions.assertEquals(taskDto.getId().toString(), coreCCRequest.getId());
+        Assertions.assertEquals(cgmFileName, coreCCRequest.getCgm().getFilename());
+        Assertions.assertEquals(cgmFileUrl, coreCCRequest.getCgm().getUrl());
+        //if optional input absent, file resource shall be left null
+        Assertions.assertNull(coreCCRequest.getDcCgm());
     }
 
     @Test
@@ -148,6 +185,7 @@ class CoreCCAdapterServiceTest {
         OffsetDateTime timestamp = OffsetDateTime.parse("2021-12-07T14:30Z");
         List<ProcessFileDto> processFiles = new ArrayList<>();
         processFiles.add(new ProcessFileDto(cgmFilePath, cgmFileType, ProcessFileStatus.VALIDATED, cgmFileName, timestamp));
+        processFiles.add(new ProcessFileDto(dcCgmFilePath, dcCgmFileType, ProcessFileStatus.VALIDATED, dcCgmFileName, timestamp));
         processFiles.add(new ProcessFileDto(cbcoraFilePath, cbcoraFileType, ProcessFileStatus.VALIDATED, cbcoraFileName, timestamp));
         processFiles.add(new ProcessFileDto(glskFilePath, glskFileType, ProcessFileStatus.VALIDATED, glskFileName, timestamp));
         processFiles.add(new ProcessFileDto(raoRequestFilePath, raoRequestFileType, ProcessFileStatus.VALIDATED, raoRequestFileName, timestamp));
