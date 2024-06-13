@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    function:
+      definition: consumeTaskDtoUpdate
+
+job-launcher:
+  process:
+    timezone: CET
+    days-to-add: 0
