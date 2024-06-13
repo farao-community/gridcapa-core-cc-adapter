@@ -84,7 +84,7 @@ class CoreCCAdapterServiceTest {
         processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
         List<TaskParameterDto> parameters = new ArrayList<>();
-        return new TaskDto(id, timestamp, status, processFiles, null, processEvents, parameters);
+        return new TaskDto(id, timestamp, status, processFiles, processFiles, null, processEvents, null, parameters);
     }
 
     public TaskDto createTaskDtoWithStatusWithDcCgmAbsent(TaskStatus status) {
@@ -100,7 +100,7 @@ class CoreCCAdapterServiceTest {
         processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
         List<TaskParameterDto> parameters = new ArrayList<>();
-        return new TaskDto(id, timestamp, status, processFiles, null, processEvents, parameters);
+        return new TaskDto(id, timestamp, status, processFiles, processFiles, null, processEvents, null, parameters);
     }
 
     @BeforeEach
@@ -149,7 +149,7 @@ class CoreCCAdapterServiceTest {
     @Test
     void testGetManualCoreCCRequest() {
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.READY);
-        CoreCCRequest coreCCRequest = coreCCAdapterService.getManualCoreCCRequest(taskDto);
+        CoreCCRequest coreCCRequest = coreCCAdapterService.getCoreCCRequest(taskDto, false);
         Assertions.assertEquals(taskDto.getId().toString(), coreCCRequest.getId());
         Assertions.assertEquals(cgmFileName, coreCCRequest.getCgm().getFilename());
         Assertions.assertEquals(cgmFileUrl, coreCCRequest.getCgm().getUrl());
@@ -159,7 +159,7 @@ class CoreCCAdapterServiceTest {
     @Test
     void testGetManualCoreCCRequestWithoutDcCgm() {
         TaskDto taskDto = createTaskDtoWithStatusWithDcCgmAbsent(TaskStatus.READY);
-        CoreCCRequest coreCCRequest = coreCCAdapterService.getManualCoreCCRequest(taskDto);
+        CoreCCRequest coreCCRequest = coreCCAdapterService.getCoreCCRequest(taskDto, false);
         Assertions.assertEquals(taskDto.getId().toString(), coreCCRequest.getId());
         Assertions.assertEquals(cgmFileName, coreCCRequest.getCgm().getFilename());
         Assertions.assertEquals(cgmFileUrl, coreCCRequest.getCgm().getUrl());
@@ -170,7 +170,7 @@ class CoreCCAdapterServiceTest {
     @Test
     void testGetAutomaticCoreCCRequest() {
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.READY);
-        CoreCCRequest coreCCRequest = coreCCAdapterService.getAutomaticCoreCCRequest(taskDto);
+        CoreCCRequest coreCCRequest = coreCCAdapterService.getCoreCCRequest(taskDto, true);
         Assertions.assertEquals(cbcoraFileName, coreCCRequest.getCbcora().getFilename());
         Assertions.assertEquals(cbcoraFileUrl, coreCCRequest.getCbcora().getUrl());
         Assertions.assertEquals(glskFileName, coreCCRequest.getGlsk().getFilename());
@@ -193,21 +193,21 @@ class CoreCCAdapterServiceTest {
         processFiles.add(new ProcessFileDto(virtualHubFilePath, virtualHubFileType, ProcessFileStatus.VALIDATED, virtualHubFileName, timestamp));
         List<ProcessEventDto> processEvents = new ArrayList<>();
         List<TaskParameterDto> parameters = new ArrayList<>();
-        TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, processFiles, null, processEvents, parameters);
-        Assertions.assertThrows(IllegalStateException.class, () -> coreCCAdapterService.getManualCoreCCRequest(taskDto));
+        TaskDto taskDto = new TaskDto(id, timestamp, TaskStatus.READY, processFiles, processFiles, null, processEvents, null, parameters);
+        Assertions.assertThrows(IllegalStateException.class, () -> coreCCAdapterService.getCoreCCRequest(taskDto, false));
     }
 
     @Test
     void testHandleManualTaskDoesNotThrowException() {
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.READY);
-        coreCCAdapterService.handleManualTask(taskDto);
+        coreCCAdapterService.handleTask(taskDto, false);
         assertDoesNotThrow((ThrowingSupplier<RuntimeException>) RuntimeException::new);
     }
 
     @Test
     void testHandleAutoTaskDoesNotThrowException() {
         TaskDto taskDto = createTaskDtoWithStatus(TaskStatus.READY);
-        coreCCAdapterService.handleAutoTask(taskDto);
+        coreCCAdapterService.handleTask(taskDto, true);
         assertDoesNotThrow((ThrowingSupplier<RuntimeException>) RuntimeException::new);
     }
 

@@ -24,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * @author Godelaine de Montmorillon {@literal <godelaine.demontmorillon at rte-france.com>}
  * @author Philippe Edwards {@literal <philippe.edwards at rte-france.com>}
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @Service
 public class CoreCCAdapterService {
@@ -37,49 +38,25 @@ public class CoreCCAdapterService {
         this.minioAdapter = minioAdapter;
     }
 
-    void handleAutoTask(TaskDto taskDto) {
+    public void handleTask(TaskDto taskDto, boolean isLaunchedAutomatically) {
+        final String runMode = isLaunchedAutomatically ? "automatic" : "manual";
         try {
             if (taskDto.getStatus() == TaskStatus.READY
                     || taskDto.getStatus() == TaskStatus.SUCCESS
                     || taskDto.getStatus() == TaskStatus.ERROR) {
-                LOGGER.info("Handling automatic run request on TS {} ", taskDto.getTimestamp());
-                CoreCCRequest request = getAutomaticCoreCCRequest(taskDto);
+                LOGGER.info("Handling {} run request on TS {} ", runMode, taskDto.getTimestamp());
+                final CoreCCRequest request = getCoreCCRequest(taskDto, isLaunchedAutomatically);
                 runAsync(request);
             } else {
-                LOGGER.warn("Failed to handle automatic run request on timestamp {} because it is not ready yet", taskDto.getTimestamp());
+                LOGGER.warn("Failed to handle {} run request on timestamp {} because it is not ready yet", runMode, taskDto.getTimestamp());
             }
         } catch (Exception e) {
-            throw new CoreCCAdapterException(String.format("Error during handling automatic run request %s on TS ", taskDto.getTimestamp()), e);
+            throw new CoreCCAdapterException(String.format("Error during handling %s run request %s on TS ", runMode, taskDto.getTimestamp()), e);
         }
     }
 
     void runAsync(CoreCCRequest request) {
         CompletableFuture.runAsync(() -> coreCCClient.run(request));
-    }
-
-    void handleManualTask(TaskDto taskDto) {
-        try {
-            if (taskDto.getStatus() == TaskStatus.READY
-                    || taskDto.getStatus() == TaskStatus.SUCCESS
-                    || taskDto.getStatus() == TaskStatus.ERROR) {
-                LOGGER.info("Handling manual run request on TS {} ", taskDto.getTimestamp());
-                CoreCCRequest request = getManualCoreCCRequest(taskDto);
-                runAsync(request);
-            } else {
-                LOGGER.warn("Failed to handle manual run request on timestamp {} because it is not ready yet", taskDto.getTimestamp());
-            }
-        } catch (Exception e) {
-            throw new CoreCCAdapterException(String.format("Error during handling manual run request %s on TS ", taskDto.getTimestamp()), e);
-        }
-
-    }
-
-    CoreCCRequest getManualCoreCCRequest(TaskDto taskDto) {
-        return getCoreCCRequest(taskDto, false);
-    }
-
-    CoreCCRequest getAutomaticCoreCCRequest(TaskDto taskDto) {
-        return getCoreCCRequest(taskDto, true);
     }
 
     CoreCCRequest getCoreCCRequest(TaskDto taskDto, boolean isLaunchedAutomatically) {
