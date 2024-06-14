@@ -4,9 +4,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.farao_community.farao.core_cc.job_launcher.service;
+package com.farao_community.farao.core_cc.adapter.service;
 
-import com.farao_community.farao.core_cc.job_launcher.JobLauncherConfigurationProperties;
+import com.farao_community.farao.core_cc.adapter.configuration.CoreCCAdapterConfiguration;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileStatus;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessRunDto;
@@ -43,11 +43,11 @@ class JobLauncherAutoServiceTest {
     private JobLauncherAutoService service;
 
     @MockBean
-    private JobLauncherService jobLauncherService;
+    private JobLauncherManualService jobLauncherManualService;
     @MockBean
-    private JobLauncherCommonService jobLauncherCommonService;
+    private CoreCCAdapterService adapterService;
     @MockBean
-    private JobLauncherConfigurationProperties jobLauncherConfigurationProperties;
+    private CoreCCAdapterConfiguration coreCCAdapterConfiguration;
     @MockBean
     private RestTemplateBuilder restTemplateBuilder;
     @MockBean
@@ -59,7 +59,7 @@ class JobLauncherAutoServiceTest {
 
         service.runReadyTasks(null);
 
-        Mockito.verifyNoInteractions(jobLauncherCommonService);
+        Mockito.verifyNoInteractions(adapterService);
     }
 
     @ParameterizedTest
@@ -69,7 +69,7 @@ class JobLauncherAutoServiceTest {
 
         service.runReadyTasks(taskDto);
 
-        Mockito.verifyNoInteractions(jobLauncherCommonService);
+        Mockito.verifyNoInteractions(adapterService);
     }
 
     @Test
@@ -79,12 +79,14 @@ class JobLauncherAutoServiceTest {
                 "RAOREQUEST",
                 ProcessFileStatus.VALIDATED,
                 "raorequest.xml",
+                null,
                 OffsetDateTime.now());
         ProcessFileDto cracFile = new ProcessFileDto(
                 "path/to/crac.xml",
                 "CRAC",
                 ProcessFileStatus.VALIDATED,
                 "crac.xml",
+                "documentId",
                 OffsetDateTime.now());
         ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
         ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
@@ -98,11 +100,11 @@ class JobLauncherAutoServiceTest {
                 List.of(),
                 List.of(processRunForCrac, processRunForRaoRequest),
                 List.of());
-        Mockito.when(jobLauncherConfigurationProperties.autoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
+        Mockito.when(coreCCAdapterConfiguration.autoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
 
         service.runReadyTasks(taskDto);
 
-        Mockito.verifyNoInteractions(jobLauncherCommonService);
+        Mockito.verifyNoInteractions(adapterService);
     }
 
     @Test
@@ -112,12 +114,14 @@ class JobLauncherAutoServiceTest {
                 "RAOREQUEST",
                 ProcessFileStatus.VALIDATED,
                 "raorequest.xml",
+                null,
                 OffsetDateTime.now());
         ProcessFileDto cracFile = new ProcessFileDto(
                 "path/to/crac.xml",
                 "CRAC",
                 ProcessFileStatus.VALIDATED,
                 "crac.xml",
+                "documentId",
                 OffsetDateTime.now());
         ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
         TaskDto taskDto = new TaskDto(
@@ -130,11 +134,11 @@ class JobLauncherAutoServiceTest {
                 List.of(),
                 List.of(processRunForRaoRequest),
                 List.of());
-        Mockito.when(jobLauncherConfigurationProperties.autoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
+        Mockito.when(coreCCAdapterConfiguration.autoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
 
         service.runReadyTasks(taskDto);
 
-        Mockito.verify(jobLauncherCommonService, Mockito.times(1)).launchJob(taskDto, true);
+        Mockito.verify(adapterService, Mockito.times(1)).handleTask(taskDto, true);
     }
 
     @Test
@@ -144,12 +148,14 @@ class JobLauncherAutoServiceTest {
                 "RAOREQUEST",
                 ProcessFileStatus.VALIDATED,
                 "raorequest.xml",
+                null,
                 OffsetDateTime.now());
         ProcessFileDto cracFile = new ProcessFileDto(
                 "path/to/crac.xml",
                 "CRAC",
                 ProcessFileStatus.VALIDATED,
                 "crac.xml",
+                "documentId",
                 OffsetDateTime.now());
         ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
         ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
@@ -163,11 +169,11 @@ class JobLauncherAutoServiceTest {
                 List.of(),
                 List.of(processRunForCrac, processRunForRaoRequest),
                 List.of());
-        Mockito.when(jobLauncherConfigurationProperties.autoTriggerFiletypes()).thenReturn(List.of());
+        Mockito.when(coreCCAdapterConfiguration.autoTriggerFiletypes()).thenReturn(List.of());
 
         service.runReadyTasks(taskDto);
 
-        Mockito.verify(jobLauncherCommonService, Mockito.times(1)).launchJob(taskDto, true);
+        Mockito.verify(adapterService, Mockito.times(1)).handleTask(taskDto, true);
     }
 
     @Test

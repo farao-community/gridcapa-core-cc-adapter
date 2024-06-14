@@ -24,9 +24,14 @@
 
     <properties>
         <gridcapa.starter.minio.adapter.version>1.1.2</gridcapa.starter.minio.adapter.version>
-        <task-manager.version>1.28.0</task-manager.version>
+        <task-manager.version>1.29.0-SNAPSHOT</task-manager.version>
         <core-cc-runner.version>1.6.0</core-cc-runner.version>
         <logstash.version>7.3</logstash.version>
+        <maven.jaxb2.version>0.15.3</maven.jaxb2.version>
+        <jackson-datatype.version>2.17.0</jackson-datatype.version>
+        <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
+        <jaxb-runtime.version>2.4.0-b180830.0438</jaxb-runtime.version>
+        <threeten-extra.version>1.7.2</threeten-extra.version>
     </properties>
 
     <build>
@@ -34,6 +39,25 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>${maven.jaxb2.version}</version>
+                <executions>
+                    <execution>
+                        <id>rao-request-xsd</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <forceRegenerate>true</forceRegenerate>
+                            <schemaDirectory>src/main/resources/xsd/F302-RaoRequest</schemaDirectory>
+                            <bindingDirectory>src/main/resources/xjb/F302-RaoRequest</bindingDirectory>
+                            <strict>false</strict>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -82,6 +106,29 @@
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
             <version>${logstash.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>${jaxb-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jdk8</artifactId>
+            <version>${jackson-datatype.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.threeten</groupId>
+            <artifactId>threeten-extra</artifactId>
+            <version>${threeten-extra.version}</version>
+        </dependency>
+
+        <!-- RUNTIME -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>${jaxb-runtime.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- TEST DEPENDENCIES -->

@@ -4,12 +4,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.farao_community.farao.core_cc.job_launcher.service;
+package com.farao_community.farao.core_cc.adapter.service;
 
+import com.farao_community.farao.core_cc.adapter.exception.TaskNotFoundException;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -29,17 +30,17 @@ import java.util.List;
 import java.util.UUID;
 
 @SpringBootTest
-class JobLauncherServiceTest {
+class JobLauncherManualServiceTest {
 
     @Autowired
-    private JobLauncherService service;
+    private JobLauncherManualService service;
 
     @MockBean
-    private JobLauncherCommonService jobLauncherCommonService;
+    private CoreCCAdapterService adapterService;
     @MockBean
     private RestTemplateBuilder restTemplateBuilder;
     @MockBean
-    private Logger jobLauncherEventsLogger;
+    private Logger eventsLogger;
 
     @Test
     void launchJobWithNoTaskDtoTest() {
@@ -47,9 +48,8 @@ class JobLauncherServiceTest {
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean launchJobResult = service.launchJob("", List.of());
-
-        Assertions.assertFalse(launchJobResult);
+        Assertions.assertThatExceptionOfType(TaskNotFoundException.class)
+                .isThrownBy(() -> service.launchJob("", List.of()));
     }
 
     @ParameterizedTest
@@ -60,24 +60,22 @@ class JobLauncherServiceTest {
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean launchJobResult = service.launchJob("", List.of());
+        service.launchJob("", List.of());
 
-        Assertions.assertTrue(launchJobResult);
-        Mockito.verify(jobLauncherEventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.any(OffsetDateTime.class));
+        Mockito.verify(eventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.any(OffsetDateTime.class));
     }
 
     @ParameterizedTest
-    @EnumSource(value = TaskStatus.class, names = {"READY", "SUCCESS", "ERROR", "INTERRUPTED"})
+    @EnumSource(value = TaskStatus.class, names = {"READY", "SUCCESS", "ERROR"})
     void launchJobWithReadyTask(TaskStatus taskStatus) {
         RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean launchJobResult = service.launchJob("", List.of());
+        service.launchJob("", List.of());
 
-        Assertions.assertTrue(launchJobResult);
-        Mockito.verify(jobLauncherCommonService, Mockito.times(1)).launchJob(taskDto, false);
+        Mockito.verify(adapterService, Mockito.times(1)).handleTask(taskDto, false);
     }
 
     @Test
@@ -87,13 +85,14 @@ class JobLauncherServiceTest {
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean launchJobResult = service.launchJob("", List.of(new TaskParameterDto("id", "type", "value", "default")));
+        service.launchJob("", List.of(new TaskParameterDto("id", "type", "value", "default")));
 
         ArgumentCaptor<TaskDto> taskDtoCaptor = ArgumentCaptor.forClass(TaskDto.class);
-        Assertions.assertTrue(launchJobResult);
-        Mockito.verify(jobLauncherCommonService, Mockito.times(1)).launchJob(taskDtoCaptor.capture(), Mockito.eq(false));
-        Assertions.assertNotNull(taskDtoCaptor.getValue());
-        Assertions.assertNotNull(taskDtoCaptor.getValue().getParameters());
-        Assertions.assertFalse(taskDtoCaptor.getValue().getParameters().isEmpty());
+        Mockito.verify(adapterService, Mockito.times(1)).handleTask(taskDtoCaptor.capture(), Mockito.eq(false));
+        Assertions.assertThat(taskDtoCaptor.getValue())
+                .isNotNull();
+        Assertions.assertThat(taskDtoCaptor.getValue().getParameters())
+                .isNotNull()
+                .isNotEmpty();
     }
 }

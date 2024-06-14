@@ -37,13 +37,12 @@ minio-adapter:
   secret-key: gridcapa-secret
   url: https://minio.test/
 
-job-launcher:
+core-cc-adapter:
   auto-trigger-filetypes:
     - RAOREQUEST
     - CRAC
   url:
     task-manager-timestamp-url: http://test-uri/
-    task-manager-business-date-url: http://test-uri/
-  process:
-    timezone: CET
-    days-to-add: 0
+  whitelist:
+    - http://test-uri/
+    - file:/

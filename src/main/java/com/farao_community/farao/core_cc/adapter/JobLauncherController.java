@@ -4,9 +4,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.farao_community.farao.core_cc.job_launcher;
+package com.farao_community.farao.core_cc.adapter;
 
-import com.farao_community.farao.core_cc.job_launcher.service.JobLauncherService;
+import com.farao_community.farao.core_cc.adapter.exception.TaskNotFoundException;
+import com.farao_community.farao.core_cc.adapter.service.JobLauncherManualService;
 import com.farao_community.farao.gridcapa.task_manager.api.ParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import org.slf4j.Logger;
@@ -23,10 +24,10 @@ import java.util.List;
 public class JobLauncherController {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherController.class);
 
-    private final JobLauncherService jobLauncherService;
+    private final JobLauncherManualService jobLauncherService;
 
-    public JobLauncherController(JobLauncherService jobLauncherService) {
-        this.jobLauncherService = jobLauncherService;
+    public JobLauncherController(JobLauncherManualService jobLauncherManualService) {
+        this.jobLauncherService = jobLauncherManualService;
     }
 
     @PostMapping(value = "/start/{timestamp}")
@@ -35,13 +36,15 @@ public class JobLauncherController {
         if (parameters != null) {
             taskParameterDtos = parameters.stream().map(TaskParameterDto::new).toList();
         }
-        if (jobLauncherService.launchJob(timestamp, taskParameterDtos)) {
+        try {
+            jobLauncherService.launchJob(timestamp, taskParameterDtos);
             return ResponseEntity.ok().build();
+        } catch (TaskNotFoundException tnfe) {
+            return getNotFoundResponseEntity(timestamp);
         }
-        return getEmptyResponseEntity(timestamp);
     }
 
-    private ResponseEntity<Void> getEmptyResponseEntity(@PathVariable String timestamp) {
+    private ResponseEntity<Void> getNotFoundResponseEntity(@PathVariable String timestamp) {
         LOGGER.error("Failed to retrieve task with timestamp {}", timestamp);
         return ResponseEntity.notFound().build();
     }

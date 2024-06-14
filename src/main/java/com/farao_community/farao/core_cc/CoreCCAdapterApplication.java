@@ -6,7 +6,7 @@
  */
 package com.farao_community.farao.core_cc;
 
-import com.farao_community.farao.core_cc.job_launcher.JobLauncherConfigurationProperties;
+import com.farao_community.farao.core_cc.adapter.configuration.CoreCCAdapterConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -18,7 +18,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  */
 @SuppressWarnings("hideutilityclassconstructor")
 @EnableWebMvc
-@EnableConfigurationProperties(JobLauncherConfigurationProperties.class)
+@EnableConfigurationProperties({CoreCCAdapterConfiguration.class})
 @SpringBootApplication
 public class CoreCCAdapterApplication {
     public static void main(String[] args) {

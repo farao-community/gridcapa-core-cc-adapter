@@ -3,7 +3,7 @@ spring:
     function:
       definition: consumeTaskDtoUpdate
 
-job-launcher:
+core-cc-adapter:
   process:
     timezone: CET
     days-to-add: 0
