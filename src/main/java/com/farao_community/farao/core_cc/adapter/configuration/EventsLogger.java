@@ -11,9 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @author Mohamed BenRejeb {@literal <mohamed.ben-rejeb at rte-france.com>}
- */
 @Configuration
 class EventsLogger {
 

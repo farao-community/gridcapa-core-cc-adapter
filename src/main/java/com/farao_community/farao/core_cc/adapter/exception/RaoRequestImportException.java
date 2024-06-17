@@ -11,5 +11,4 @@ public class RaoRequestImportException extends Exception {
     public RaoRequestImportException(String message, Throwable throwable) {
         super(message, throwable);
     }
-
 }

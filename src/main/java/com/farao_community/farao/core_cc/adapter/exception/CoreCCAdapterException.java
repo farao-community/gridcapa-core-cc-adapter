@@ -19,5 +19,4 @@ public class CoreCCAdapterException extends RuntimeException {
     public CoreCCAdapterException(String message, Throwable throwable) {
         super(message, throwable);
     }
-
 }

@@ -15,10 +15,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
-import java.util.StringJoiner;
 
 /**
  * @author Ameni Walha {@literal <ameni.walha at rte-france.com>}
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @Component
 public class UrlValidationService {
@@ -30,15 +30,14 @@ public class UrlValidationService {
 
     public InputStream openUrlStream(String urlString) {
         if (whitelist.stream().noneMatch(urlString::startsWith)) {
-            StringJoiner sj = new StringJoiner(", ", "Whitelist: ", ".");
-            whitelist.forEach(sj::add);
-            throw new CoreCCInvalidDataException(String.format("URL '%s' is not part of application's whitelisted url's %s", urlString, sj));
+            String message = String.format("URL '%s' is not part of application's whitelisted urls: %s.", urlString, String.join(", ", whitelist));
+            throw new CoreCCInvalidDataException(message);
         }
         try {
             URL url = new URL(urlString);
             return url.openStream();
         } catch (IOException e) {
-            throw new CoreCCInvalidDataException(String.format("Cannot download FileResource file from URL '%s'", urlString), e);
+            throw new CoreCCInvalidDataException(String.format("Cannot download file resource from URL '%s'", urlString), e);
         }
     }
 }

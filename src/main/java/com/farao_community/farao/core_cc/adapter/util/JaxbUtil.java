@@ -22,7 +22,7 @@ public final class JaxbUtil {
     public static <T> T unmarshalContent(Class<T> clazz, InputStream inputStream) throws JAXBException {
         final JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
         final Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-        final JAXBElement<T> requestMessageTypeElement = jaxbUnmarshaller.unmarshal(new StreamSource(inputStream), clazz);
-        return requestMessageTypeElement.getValue();
+        final JAXBElement<T> jaxbElement = jaxbUnmarshaller.unmarshal(new StreamSource(inputStream), clazz);
+        return jaxbElement.getValue();
     }
 }
