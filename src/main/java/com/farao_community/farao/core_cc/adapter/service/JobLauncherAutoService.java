@@ -32,12 +32,10 @@ public class JobLauncherAutoService {
 
     private final CoreCCAdapterConfiguration coreCCAdapterConfiguration;
     private final CoreCCAdapterService adapterService;
-    private final Logger eventsLogger;
 
-    public JobLauncherAutoService(CoreCCAdapterConfiguration coreCCAdapterConfiguration, CoreCCAdapterService adapterService, Logger eventsLogger) {
+    public JobLauncherAutoService(CoreCCAdapterConfiguration coreCCAdapterConfiguration, CoreCCAdapterService adapterService) {
         this.coreCCAdapterConfiguration = coreCCAdapterConfiguration;
         this.adapterService = adapterService;
-        this.eventsLogger = eventsLogger;
     }
 
     @Bean
@@ -49,10 +47,6 @@ public class JobLauncherAutoService {
 
     void runReadyTasks(TaskDto updatedTaskDto) {
         try {
-            // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
-            // This should be done only once, as soon as the information to add in mdc is available.
-            MDC.put("gridcapa-task-id", updatedTaskDto.getId().toString());
-
             if (isTaskReadyToBeLaunched(updatedTaskDto)) {
                 final boolean autoTriggerFiletypesDefinedInConfig = !coreCCAdapterConfiguration.autoTriggerFiletypes().isEmpty();
                 if (autoTriggerFiletypesDefinedInConfig && allTriggerFilesAlreadyUsed(updatedTaskDto)) {
@@ -61,9 +55,11 @@ public class JobLauncherAutoService {
                     return;
                 }
 
+                // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+                // This should be done only once, as soon as the information to add in mdc is available.
+                MDC.put("gridcapa-task-id", updatedTaskDto.getId().toString());
+
                 adapterService.handleTask(updatedTaskDto, true);
-            } else {
-                eventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", updatedTaskDto.getTimestamp());
             }
         } catch (Exception e) {
             // this exeption block avoids application from disconnecting from spring cloud stream !

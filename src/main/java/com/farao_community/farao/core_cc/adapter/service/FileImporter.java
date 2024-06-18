@@ -9,7 +9,7 @@ package com.farao_community.farao.core_cc.adapter.service;
 
 import com.farao_community.farao.core_cc.adapter.exception.RaoRequestImportException;
 import com.farao_community.farao.core_cc.adapter.util.JaxbUtil;
-import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
+import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCFileResource;
 import com.farao_community.farao.gridcapa_core_cc.app.inputs.rao_request.RequestMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +33,11 @@ public class FileImporter {
         this.urlValidationService = urlValidationService;
     }
 
-    public RequestMessage importRaoRequest(ProcessFileDto raoRequestFileResource) throws RaoRequestImportException {
-        try (InputStream raoRequestInputStream = urlValidationService.openUrlStream(raoRequestFileResource.getFilePath())) {
+    public RequestMessage importRaoRequest(CoreCCFileResource raoRequestFileResource) throws RaoRequestImportException {
+        try (InputStream raoRequestInputStream = urlValidationService.openUrlStream(raoRequestFileResource.getUrl())) {
             return JaxbUtil.unmarshalContent(RequestMessage.class, raoRequestInputStream);
         } catch (IOException e) {
-            String errorMessage = String.format("Cannot download rao request file from URL '%s'", raoRequestFileResource.getFilePath());
+            String errorMessage = String.format("Cannot download rao request file from URL '%s'", raoRequestFileResource.getUrl());
             LOGGER.error(errorMessage);
             throw new RaoRequestImportException(errorMessage, e);
         } catch (JAXBException e) {

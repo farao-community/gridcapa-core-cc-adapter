@@ -75,7 +75,7 @@ public class CoreCCAdapterService {
         } catch (CoreCCAdapterException cccae) {
             throw cccae;
         } catch (Exception e) {
-            throw new CoreCCAdapterException(String.format("Error during handling %s run request on TS %s", runMode, taskTimestamp), e);
+            throw new CoreCCAdapterException(String.format("Error while handling %s run request on TS %s", runMode, taskTimestamp), e);
         }
     }
 
@@ -92,9 +92,10 @@ public class CoreCCAdapterService {
                 .orElseThrow(() -> new MissingFileException(String.format("No RAOREQUEST file found in task %s", taskTimestamp)));
 
         final EnumMap<FileType, CoreCCFileResource> inputFilesMap = new EnumMap<>(FileType.class);
-        inputFilesMap.put(FileType.RAOREQUEST, getCoreCCFileResource(raoRequestProcessFile));
+        CoreCCFileResource raoRequestFileResource = getCoreCCFileResource(raoRequestProcessFile);
+        inputFilesMap.put(FileType.RAOREQUEST, raoRequestFileResource);
 
-        getDocumentIdsFromRaoRequest(taskTimestamp, raoRequestProcessFile).stream()
+        getDocumentIdsFromRaoRequest(taskTimestamp, raoRequestFileResource).stream()
                 .map(documentId -> findProcessFileMatchingDocumentId(availableInputFiles, documentId)
                         .orElseThrow(() -> new MissingFileException(String.format("No file found in task %s matching DocumentId %s", taskTimestamp, documentId))))
                 .forEach(processFile -> addProcessFileInInputFilesMap(processFile, inputFilesMap));
@@ -126,8 +127,8 @@ public class CoreCCAdapterService {
                 .findFirst();
     }
 
-    private List<String> getDocumentIdsFromRaoRequest(OffsetDateTime taskTimestamp, ProcessFileDto raoRequestProcessFile) throws RaoRequestImportException {
-        final RequestMessage raoRequestMessage = fileImporter.importRaoRequest(raoRequestProcessFile);
+    private List<String> getDocumentIdsFromRaoRequest(OffsetDateTime taskTimestamp, CoreCCFileResource raoRequestFileResource) throws RaoRequestImportException {
+        final RequestMessage raoRequestMessage = fileImporter.importRaoRequest(raoRequestFileResource);
 
         final RequestItem requestItem = raoRequestMessage.getPayload().getRequestItems().getRequestItem().stream()
                 .filter(item -> Interval.parse(item.getTimeInterval()).contains(taskTimestamp.toInstant()))
@@ -141,7 +142,7 @@ public class CoreCCAdapterService {
 
     private void addProcessFileInInputFilesMap(ProcessFileDto processFileDto, EnumMap<FileType, CoreCCFileResource> inputFiles) {
         final String fileType = processFileDto.getFileType();
-        LOGGER.info("Received {}", fileType);
+        LOGGER.info("Received {} with DocumentId {}", fileType, processFileDto.getDocumentId());
         switch (fileType) {
             case "CGM" -> inputFiles.put(FileType.CGM, getCoreCCFileResource(processFileDto));
             case "DCCGM" -> {

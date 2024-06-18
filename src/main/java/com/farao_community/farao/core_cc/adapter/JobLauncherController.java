@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.core_cc.adapter;
 
+import com.farao_community.farao.core_cc.adapter.exception.CoreCCAdapterException;
 import com.farao_community.farao.core_cc.adapter.exception.TaskNotFoundException;
 import com.farao_community.farao.core_cc.adapter.service.JobLauncherManualService;
 import com.farao_community.farao.gridcapa.task_manager.api.ParameterDto;
@@ -41,11 +42,18 @@ public class JobLauncherController {
             return ResponseEntity.ok().build();
         } catch (TaskNotFoundException tnfe) {
             return getNotFoundResponseEntity(timestamp);
+        } catch (CoreCCAdapterException cccae) {
+            return getBadRequestResponseEntity(cccae, timestamp);
         }
     }
 
-    private ResponseEntity<Void> getNotFoundResponseEntity(@PathVariable String timestamp) {
+    private ResponseEntity<Void> getNotFoundResponseEntity(String timestamp) {
         LOGGER.error("Failed to retrieve task with timestamp {}", timestamp);
         return ResponseEntity.notFound().build();
+    }
+
+    private ResponseEntity<Void> getBadRequestResponseEntity(CoreCCAdapterException cccae, String timestamp) {
+        LOGGER.error("Error occurred in timestamp {}", timestamp, cccae);
+        return ResponseEntity.badRequest().build();
     }
 }
