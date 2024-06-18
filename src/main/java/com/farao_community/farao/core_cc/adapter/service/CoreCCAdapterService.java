@@ -100,6 +100,12 @@ public class CoreCCAdapterService {
                         .orElseThrow(() -> new MissingFileException(String.format("No file found in task %s matching DocumentId %s", taskTimestamp, documentId))))
                 .forEach(processFile -> addProcessFileInInputFilesMap(processFile, inputFilesMap));
 
+        // TODO Remove this code specific to VIRTUALHUB files when Coreso has made it clear how to handle them
+        ProcessFileDto virtualhubProcessFile = findVirtualhubProcessFile(taskDto.getInputs())
+                .orElseThrow(() -> new MissingFileException(String.format("No VIRTUALHUB file found in task %s", taskTimestamp)));
+        CoreCCFileResource virtualhubsFileResource = getCoreCCFileResource(virtualhubProcessFile);
+        inputFilesMap.put(FileType.VIRTUALHUB, virtualhubsFileResource);
+
         return new CoreCCRequest(
                 id,
                 taskTimestamp,
@@ -121,6 +127,13 @@ public class CoreCCAdapterService {
                 .findFirst();
     }
 
+    // TODO Remove this method when Coreso has made it clear how to handle VIRTUALHUB files
+    private static Optional<ProcessFileDto> findVirtualhubProcessFile(List<ProcessFileDto> inputs) {
+        return inputs.stream()
+                .filter(f -> "VIRTUALHUB".equals(f.getFileType()))
+                .findFirst();
+    }
+
     private static Optional<ProcessFileDto> findProcessFileMatchingDocumentId(List<ProcessFileDto> availableInputs, String documentId) {
         return availableInputs.stream()
                 .filter(availableInput -> documentId.equals(availableInput.getDocumentId()))
@@ -136,6 +149,7 @@ public class CoreCCAdapterService {
                 .orElseThrow(() -> new CoreCCAdapterException(String.format("No data for timestamp %s in RAOREQUEST file", taskTimestamp)));
 
         return requestItem.getFiles().getFile().stream()
+                .filter(f -> !"CFG_RAO".equals(f.getCode())) // TODO Remove this filter when Coreso has made it clear how to handle VITRUALHUB files
                 .map(f -> f.getUrl().replace("documentIdentification://", ""))
                 .toList();
     }
