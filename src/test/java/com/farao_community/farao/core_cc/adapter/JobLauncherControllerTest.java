@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.core_cc.adapter;
 
+import com.farao_community.farao.core_cc.adapter.exception.CoreCCAdapterException;
 import com.farao_community.farao.core_cc.adapter.exception.TaskNotFoundException;
 import com.farao_community.farao.core_cc.adapter.service.JobLauncherManualService;
 import com.farao_community.farao.gridcapa.task_manager.api.ParameterDto;
@@ -73,5 +74,15 @@ class JobLauncherControllerTest {
         ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
 
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void launchJobInvalidDataTest() {
+        String timestamp = "2021-12-09T21:30";
+        Mockito.doThrow(CoreCCAdapterException.class).when(jobLauncherService).launchJob(timestamp, List.of());
+
+        ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
+
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 }

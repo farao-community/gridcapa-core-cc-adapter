@@ -19,10 +19,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -33,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Marc Schwitzguébel {@literal <marc.schwitzguebel at rte-france.com>}
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @SpringBootTest
 class JobLauncherAutoServiceTest {
@@ -40,24 +39,16 @@ class JobLauncherAutoServiceTest {
     @Autowired
     private StreamBridge streamBridge;
     @Autowired
-    private JobLauncherAutoService service;
+    private JobLauncherAutoService jobLauncherAutoService;
 
-    @MockBean
-    private JobLauncherManualService jobLauncherManualService;
-    @MockBean
-    private CoreCCAdapterService adapterService;
     @MockBean
     private CoreCCAdapterConfiguration coreCCAdapterConfiguration;
     @MockBean
-    private RestTemplateBuilder restTemplateBuilder;
-    @MockBean
-    private RestTemplate restTemplate;
+    private CoreCCAdapterService adapterService;
 
     @Test
     void runReadyTasksWithNullPointerException() {
-        Mockito.when(restTemplateBuilder.build()).thenThrow(RuntimeException.class);
-
-        service.runReadyTasks(null);
+        jobLauncherAutoService.runReadyTasks(null);
 
         Mockito.verifyNoInteractions(adapterService);
     }
@@ -65,9 +56,9 @@ class JobLauncherAutoServiceTest {
     @ParameterizedTest
     @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "PENDING", "RUNNING", "SUCCESS", "ERROR", "STOPPING", "INTERRUPTED"})
     void runReadyTasksWithTaskNotReady(TaskStatus taskStatus) {
-        TaskDto taskDto = new TaskDto(null, null, taskStatus, null, null, null, null, null, null);
+        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
 
-        service.runReadyTasks(taskDto);
+        jobLauncherAutoService.runReadyTasks(taskDto);
 
         Mockito.verifyNoInteractions(adapterService);
     }
@@ -102,7 +93,7 @@ class JobLauncherAutoServiceTest {
                 List.of());
         Mockito.when(coreCCAdapterConfiguration.autoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
 
-        service.runReadyTasks(taskDto);
+        jobLauncherAutoService.runReadyTasks(taskDto);
 
         Mockito.verifyNoInteractions(adapterService);
     }
@@ -136,7 +127,7 @@ class JobLauncherAutoServiceTest {
                 List.of());
         Mockito.when(coreCCAdapterConfiguration.autoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
 
-        service.runReadyTasks(taskDto);
+        jobLauncherAutoService.runReadyTasks(taskDto);
 
         Mockito.verify(adapterService, Mockito.times(1)).handleTask(taskDto, true);
     }
@@ -171,7 +162,7 @@ class JobLauncherAutoServiceTest {
                 List.of());
         Mockito.when(coreCCAdapterConfiguration.autoTriggerFiletypes()).thenReturn(List.of());
 
-        service.runReadyTasks(taskDto);
+        jobLauncherAutoService.runReadyTasks(taskDto);
 
         Mockito.verify(adapterService, Mockito.times(1)).handleTask(taskDto, true);
     }
@@ -181,10 +172,7 @@ class JobLauncherAutoServiceTest {
         TaskDto taskDto1 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f6"), OffsetDateTime.parse("2022-04-27T10:10Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         TaskDto taskDto2 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f7"), OffsetDateTime.parse("2022-04-27T10:11Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         TaskDto taskDto3 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f8"), OffsetDateTime.parse("2022-04-27T10:12Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
-        Mockito.doNothing().when(restTemplate).put("http://test-uri/2022-04-27T10:10Z/status?status=PENDING", TaskDto.class);
-        Mockito.doThrow(RuntimeException.class).when(restTemplate).put("http://test-uri/2022-04-27T10:11Z/status?status=PENDING", TaskDto.class);
-        Mockito.doNothing().when(restTemplate).put("http://test-uri/2022-04-27T10:12Z/status?status=PENDING", TaskDto.class);
+
         assertTrue(streamBridge.send(
             "consumeTaskDtoUpdate-in-0",
             MessageBuilder.withPayload(taskDto1).build()

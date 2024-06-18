@@ -50,6 +50,7 @@ class JobLauncherManualServiceTest {
 
         Assertions.assertThatExceptionOfType(TaskNotFoundException.class)
                 .isThrownBy(() -> service.launchJob("", List.of()));
+        Mockito.verifyNoInteractions(adapterService);
     }
 
     @ParameterizedTest
@@ -62,6 +63,7 @@ class JobLauncherManualServiceTest {
 
         service.launchJob("", List.of());
 
+        Mockito.verifyNoInteractions(adapterService);
         Mockito.verify(eventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.any(OffsetDateTime.class));
     }
 
