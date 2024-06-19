@@ -17,9 +17,9 @@ import java.util.List;
 class UrlValidationServiceTest {
     @Test
     void whitelistExceptionTest() {
-        CoreCCAdapterConfiguration configuration = Mockito.mock(CoreCCAdapterConfiguration.class);
+        final CoreCCAdapterConfiguration configuration = Mockito.mock(CoreCCAdapterConfiguration.class);
         Mockito.when(configuration.whitelist()).thenReturn(List.of("http://test/", "https://test/"));
-        UrlValidationService service = new UrlValidationService(configuration);
+        final UrlValidationService service = new UrlValidationService(configuration);
 
         Assertions.assertThatExceptionOfType(CoreCCInvalidDataException.class)
                 .isThrownBy(() -> service.openUrlStream("ftp://test/test.xml"))
@@ -28,9 +28,9 @@ class UrlValidationServiceTest {
 
     @Test
     void readExceptionTest() {
-        CoreCCAdapterConfiguration configuration = Mockito.mock(CoreCCAdapterConfiguration.class);
+        final CoreCCAdapterConfiguration configuration = Mockito.mock(CoreCCAdapterConfiguration.class);
         Mockito.when(configuration.whitelist()).thenReturn(List.of("test/"));
-        UrlValidationService service = new UrlValidationService(configuration);
+        final UrlValidationService service = new UrlValidationService(configuration);
 
         Assertions.assertThatExceptionOfType(CoreCCInvalidDataException.class)
                 .isThrownBy(() -> service.openUrlStream("test/test.xml"))

@@ -30,11 +30,11 @@ public class UrlValidationService {
 
     public InputStream openUrlStream(String urlString) {
         if (whitelist.stream().noneMatch(urlString::startsWith)) {
-            String message = String.format("URL '%s' is not part of application's whitelisted urls: %s.", urlString, String.join(", ", whitelist));
+            final String message = String.format("URL '%s' is not part of application's whitelisted urls: %s.", urlString, String.join(", ", whitelist));
             throw new CoreCCInvalidDataException(message);
         }
         try {
-            URL url = new URL(urlString);
+            final URL url = new URL(urlString);
             return url.openStream();
         } catch (IOException e) {
             throw new CoreCCInvalidDataException(String.format("Cannot download file resource from URL '%s'", urlString), e);

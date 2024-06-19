@@ -44,7 +44,7 @@ class JobLauncherManualServiceTest {
 
     @Test
     void launchJobWithNoTaskDtoTest() {
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
@@ -56,8 +56,8 @@ class JobLauncherManualServiceTest {
     @ParameterizedTest
     @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "PENDING", "RUNNING", "STOPPING"})
     void launchJobWithNotReadyTask(TaskStatus taskStatus) {
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
@@ -70,8 +70,8 @@ class JobLauncherManualServiceTest {
     @ParameterizedTest
     @EnumSource(value = TaskStatus.class, names = {"READY", "SUCCESS", "ERROR"})
     void launchJobWithReadyTask(TaskStatus taskStatus) {
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
@@ -82,14 +82,14 @@ class JobLauncherManualServiceTest {
 
     @Test
     void launchJobWithReadyTaskAndParameters() {
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.READY, null, null, null, null, null, null);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.READY, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
         service.launchJob("", List.of(new TaskParameterDto("id", "type", "value", "default")));
 
-        ArgumentCaptor<TaskDto> taskDtoCaptor = ArgumentCaptor.forClass(TaskDto.class);
+        final ArgumentCaptor<TaskDto> taskDtoCaptor = ArgumentCaptor.forClass(TaskDto.class);
         Mockito.verify(adapterService, Mockito.times(1)).handleTask(taskDtoCaptor.capture(), Mockito.eq(false));
         Assertions.assertThat(taskDtoCaptor.getValue())
                 .isNotNull();

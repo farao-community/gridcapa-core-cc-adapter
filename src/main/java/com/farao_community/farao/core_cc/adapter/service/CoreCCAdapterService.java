@@ -79,11 +79,11 @@ public class CoreCCAdapterService {
         }
     }
 
-    void runAsync(CoreCCRequest request) {
+    private void runAsync(CoreCCRequest request) {
         CompletableFuture.runAsync(() -> coreCCClient.run(request));
     }
 
-    CoreCCRequest getCoreCCRequest(TaskDto taskDto, boolean isLaunchedAutomatically) throws RaoRequestImportException {
+    private CoreCCRequest getCoreCCRequest(TaskDto taskDto, boolean isLaunchedAutomatically) throws RaoRequestImportException {
         final String id = taskDto.getId().toString();
         final OffsetDateTime taskTimestamp = taskDto.getTimestamp();
         final List<ProcessFileDto> availableInputFiles = taskDto.getAvailableInputs();
@@ -92,7 +92,7 @@ public class CoreCCAdapterService {
                 .orElseThrow(() -> new MissingFileException(String.format("No RAOREQUEST file found in task %s", taskTimestamp)));
 
         final EnumMap<FileType, CoreCCFileResource> inputFilesMap = new EnumMap<>(FileType.class);
-        CoreCCFileResource raoRequestFileResource = getCoreCCFileResource(raoRequestProcessFile);
+        final CoreCCFileResource raoRequestFileResource = getCoreCCFileResource(raoRequestProcessFile);
         inputFilesMap.put(FileType.RAOREQUEST, raoRequestFileResource);
 
         getDocumentIdsFromRaoRequest(taskTimestamp, raoRequestFileResource).stream()
@@ -101,9 +101,9 @@ public class CoreCCAdapterService {
                 .forEach(processFile -> addProcessFileInInputFilesMap(processFile, inputFilesMap));
 
         // TODO Remove this code specific to VIRTUALHUB files when Coreso has made it clear how to handle them
-        ProcessFileDto virtualhubProcessFile = findVirtualhubProcessFile(taskDto.getInputs())
+        final ProcessFileDto virtualhubProcessFile = findVirtualhubProcessFile(taskDto.getInputs())
                 .orElseThrow(() -> new MissingFileException(String.format("No VIRTUALHUB file found in task %s", taskTimestamp)));
-        CoreCCFileResource virtualhubsFileResource = getCoreCCFileResource(virtualhubProcessFile);
+        final CoreCCFileResource virtualhubsFileResource = getCoreCCFileResource(virtualhubProcessFile);
         inputFilesMap.put(FileType.VIRTUALHUB, virtualhubsFileResource);
 
         return new CoreCCRequest(

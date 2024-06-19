@@ -56,7 +56,7 @@ class JobLauncherAutoServiceTest {
     @ParameterizedTest
     @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "PENDING", "RUNNING", "SUCCESS", "ERROR", "STOPPING", "INTERRUPTED"})
     void runReadyTasksWithTaskNotReady(TaskStatus taskStatus) {
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
 
         jobLauncherAutoService.runReadyTasks(taskDto);
 
@@ -65,23 +65,23 @@ class JobLauncherAutoServiceTest {
 
     @Test
     void runReadyTasksWithAllTriggerFilesAlreadyUsed() {
-        ProcessFileDto raoRequestFile = new ProcessFileDto(
+        final ProcessFileDto raoRequestFile = new ProcessFileDto(
                 "path/to/raorequest.xml",
                 "RAOREQUEST",
                 ProcessFileStatus.VALIDATED,
                 "raorequest.xml",
                 null,
                 OffsetDateTime.now());
-        ProcessFileDto cracFile = new ProcessFileDto(
+        final ProcessFileDto cracFile = new ProcessFileDto(
                 "path/to/crac.xml",
                 "CRAC",
                 ProcessFileStatus.VALIDATED,
                 "crac.xml",
                 "documentId",
                 OffsetDateTime.now());
-        ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
-        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
-        TaskDto taskDto = new TaskDto(
+        final ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
+        final ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        final TaskDto taskDto = new TaskDto(
                 UUID.randomUUID(),
                 OffsetDateTime.parse("2022-04-27T10:10Z"),
                 TaskStatus.READY,
@@ -100,22 +100,22 @@ class JobLauncherAutoServiceTest {
 
     @Test
     void runReadyTasksWithSomeTriggerFilesAlreadyUsedButNotAll() {
-        ProcessFileDto raoRequestFile = new ProcessFileDto(
+        final ProcessFileDto raoRequestFile = new ProcessFileDto(
                 "path/to/raorequest.xml",
                 "RAOREQUEST",
                 ProcessFileStatus.VALIDATED,
                 "raorequest.xml",
                 null,
                 OffsetDateTime.now());
-        ProcessFileDto cracFile = new ProcessFileDto(
+        final ProcessFileDto cracFile = new ProcessFileDto(
                 "path/to/crac.xml",
                 "CRAC",
                 ProcessFileStatus.VALIDATED,
                 "crac.xml",
                 "documentId",
                 OffsetDateTime.now());
-        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
-        TaskDto taskDto = new TaskDto(
+        final ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        final TaskDto taskDto = new TaskDto(
                 UUID.randomUUID(),
                 OffsetDateTime.parse("2022-04-27T10:10Z"),
                 TaskStatus.READY,
@@ -134,23 +134,23 @@ class JobLauncherAutoServiceTest {
 
     @Test
     void runReadyTasksWithTriggerFilesFeatureDisabled() {
-        ProcessFileDto raoRequestFile = new ProcessFileDto(
+        final ProcessFileDto raoRequestFile = new ProcessFileDto(
                 "path/to/raorequest.xml",
                 "RAOREQUEST",
                 ProcessFileStatus.VALIDATED,
                 "raorequest.xml",
                 null,
                 OffsetDateTime.now());
-        ProcessFileDto cracFile = new ProcessFileDto(
+        final ProcessFileDto cracFile = new ProcessFileDto(
                 "path/to/crac.xml",
                 "CRAC",
                 ProcessFileStatus.VALIDATED,
                 "crac.xml",
                 "documentId",
                 OffsetDateTime.now());
-        ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
-        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
-        TaskDto taskDto = new TaskDto(
+        final ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
+        final ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        final TaskDto taskDto = new TaskDto(
                 UUID.randomUUID(),
                 OffsetDateTime.parse("2022-04-27T10:10Z"),
                 TaskStatus.READY,
@@ -169,9 +169,9 @@ class JobLauncherAutoServiceTest {
 
     @Test
     void whenSendMessages() {
-        TaskDto taskDto1 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f6"), OffsetDateTime.parse("2022-04-27T10:10Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-        TaskDto taskDto2 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f7"), OffsetDateTime.parse("2022-04-27T10:11Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-        TaskDto taskDto3 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f8"), OffsetDateTime.parse("2022-04-27T10:12Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        final TaskDto taskDto1 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f6"), OffsetDateTime.parse("2022-04-27T10:10Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        final TaskDto taskDto2 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f7"), OffsetDateTime.parse("2022-04-27T10:11Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        final TaskDto taskDto3 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f8"), OffsetDateTime.parse("2022-04-27T10:12Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
         assertTrue(streamBridge.send(
             "consumeTaskDtoUpdate-in-0",

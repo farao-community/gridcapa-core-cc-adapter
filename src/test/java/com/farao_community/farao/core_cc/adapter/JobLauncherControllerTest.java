@@ -37,22 +37,22 @@ class JobLauncherControllerTest {
 
     @Test
     void launchJobOk() {
-        String timestamp = "2021-12-09T21:30";
+        final String timestamp = "2021-12-09T21:30";
         Mockito.doNothing().when(jobLauncherService).launchJob(timestamp, List.of());
 
-        ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
+        final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
 
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
     void launchJobWithParametersOk() {
-        String timestamp = "2021-12-09T21:30";
-        List<ParameterDto> parameterDtos = List.of(new ParameterDto("id", "name", 1, "type", "title", 1, "value", "defaultValue"));
+        final String timestamp = "2021-12-09T21:30";
+        final List<ParameterDto> parameterDtos = List.of(new ParameterDto("id", "name", 1, "type", "title", 1, "value", "defaultValue"));
         Mockito.doNothing().when(jobLauncherService).launchJob(Mockito.eq(timestamp), Mockito.anyList());
 
-        ArgumentCaptor<List<TaskParameterDto>> captor = ArgumentCaptor.forClass(List.class);
-        ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, parameterDtos);
+        final ArgumentCaptor<List<TaskParameterDto>> captor = ArgumentCaptor.forClass(List.class);
+        final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, parameterDtos);
 
         Mockito.verify(jobLauncherService).launchJob(Mockito.eq(timestamp), captor.capture());
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -68,20 +68,20 @@ class JobLauncherControllerTest {
 
     @Test
     void launchJobTaskNotFoundTest() {
-        String timestamp = "2021-12-09T21:30";
+        final String timestamp = "2021-12-09T21:30";
         Mockito.doThrow(TaskNotFoundException.class).when(jobLauncherService).launchJob(timestamp, List.of());
 
-        ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
+        final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
 
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void launchJobInvalidDataTest() {
-        String timestamp = "2021-12-09T21:30";
+        final String timestamp = "2021-12-09T21:30";
         Mockito.doThrow(CoreCCAdapterException.class).when(jobLauncherService).launchJob(timestamp, List.of());
 
-        ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
+        final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
 
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }

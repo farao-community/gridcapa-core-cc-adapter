@@ -63,7 +63,7 @@ class CoreCCAdapterServiceTest {
 
     @Test
     void missingRaoRequestFileTest() {
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.READY, List.of(), List.of(), null, null, null, null);
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.READY, List.of(), List.of(), null, null, null, null);
 
         Assertions.assertThatExceptionOfType(CoreCCAdapterException.class)
                 .isThrownBy(() -> service.handleTask(taskDto, false))
@@ -75,9 +75,9 @@ class CoreCCAdapterServiceTest {
 
     @Test
     void errorWhenReadingRaorequestTest() throws RaoRequestImportException {
-        ProcessFileDto raoRequestProcessFile = new ProcessFileDto("http://test-uri/F302", "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
-        OffsetDateTime timestamp = OffsetDateTime.now();
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), timestamp, TaskStatus.READY, List.of(raoRequestProcessFile), List.of(raoRequestProcessFile), null, null, null, null);
+        final ProcessFileDto raoRequestProcessFile = new ProcessFileDto("http://test-uri/F302", "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
+        final OffsetDateTime timestamp = OffsetDateTime.now();
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), timestamp, TaskStatus.READY, List.of(raoRequestProcessFile), List.of(raoRequestProcessFile), null, null, null, null);
 
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath("http://test-uri/F302", 1)).thenReturn("preSignedUrl");
         Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenThrow(RaoRequestImportException.class);
@@ -90,17 +90,18 @@ class CoreCCAdapterServiceTest {
 
     @Test
     void noDataInRaoRequestTest() throws RaoRequestImportException {
-        ProcessFileDto raoRequestProcessFile = new ProcessFileDto("http://test-uri/F302", "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
-        OffsetDateTime timestamp = OffsetDateTime.now();
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), timestamp, TaskStatus.READY, List.of(raoRequestProcessFile), List.of(raoRequestProcessFile), null, null, null, null);
+        final ProcessFileDto raoRequestProcessFile = new ProcessFileDto("http://test-uri/F302", "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
+        final OffsetDateTime timestamp = OffsetDateTime.now();
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), timestamp, TaskStatus.READY, List.of(raoRequestProcessFile), List.of(raoRequestProcessFile), null, null, null, null);
+
+        final RequestMessage requestMessage = new RequestMessage();
+        final Payload payload = new Payload();
+        final RequestItems requestItems = new RequestItems();
+        requestMessage.setPayload(payload);
+        payload.setRequestItems(requestItems);
 
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath("http://test-uri/F302", 1)).thenReturn("preSignedUrl");
-        RequestMessage requestMessage = new RequestMessage();
         Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenReturn(requestMessage);
-        Payload payload = new Payload();
-        requestMessage.setPayload(payload);
-        RequestItems requestItems = new RequestItems();
-        payload.setRequestItems(requestItems);
 
         Assertions.assertThatExceptionOfType(CoreCCAdapterException.class)
                 .isThrownBy(() -> service.handleTask(taskDto, false))
@@ -109,24 +110,25 @@ class CoreCCAdapterServiceTest {
 
     @Test
     void missingOtherInputFileTest() throws RaoRequestImportException {
-        ProcessFileDto raoRequestProcessFile = new ProcessFileDto("http://test-uri/F302", "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse("2024-06-18T09:30Z"), TaskStatus.READY, List.of(raoRequestProcessFile), List.of(raoRequestProcessFile), null, null, null, null);
+        final ProcessFileDto raoRequestProcessFile = new ProcessFileDto("http://test-uri/F302", "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse("2024-06-18T09:30Z"), TaskStatus.READY, List.of(raoRequestProcessFile), List.of(raoRequestProcessFile), null, null, null, null);
 
-        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath("http://test-uri/F302", 1)).thenReturn("preSignedUrl");
-        RequestMessage requestMessage = new RequestMessage();
-        Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenReturn(requestMessage);
-        Payload payload = new Payload();
+        final RequestMessage requestMessage = new RequestMessage();
+        final Payload payload = new Payload();
+        final RequestItems requestItems = new RequestItems();
+        final RequestItem requestItem = new RequestItem();
+        final Files files = new Files();
+        final File file = new File();
         requestMessage.setPayload(payload);
-        RequestItems requestItems = new RequestItems();
         payload.setRequestItems(requestItems);
-        RequestItem requestItem = new RequestItem();
         requestItem.setTimeInterval("2024-06-18T09:00Z/2024-06-18T10:00Z");
-        Files files = new Files();
         requestItem.setFiles(files);
         requestItems.getRequestItem().add(requestItem);
-        File file = new File();
         files.getFile().add(file);
         file.setUrl("documentIdentification://test-document-id");
+
+        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath("http://test-uri/F302", 1)).thenReturn("preSignedUrl");
+        Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenReturn(requestMessage);
 
         Assertions.assertThatExceptionOfType(CoreCCAdapterException.class)
                 .isThrownBy(() -> service.handleTask(taskDto, false))
@@ -138,27 +140,27 @@ class CoreCCAdapterServiceTest {
 
     @Test
     void missingVirtualhubFileTest() throws RaoRequestImportException {
-        ProcessFileDto raoRequestProcessFile = new ProcessFileDto("http://test-uri/F302", "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
-        String cgmFilePath = "http://test-uri/F119";
-        ProcessFileDto cgmProcessFile = new ProcessFileDto(cgmFilePath, "CGM", ProcessFileStatus.VALIDATED, "cgm.zip", "cgm-document-id", OffsetDateTime.now());
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse("2024-06-18T09:30Z"), TaskStatus.READY, List.of(raoRequestProcessFile, cgmProcessFile), List.of(raoRequestProcessFile, cgmProcessFile), null, null, null, null);
+        final ProcessFileDto raoRequestProcessFile = new ProcessFileDto("http://test-uri/F302", "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
+        final String cgmFilePath = "http://test-uri/F119";
+        final ProcessFileDto cgmProcessFile = new ProcessFileDto(cgmFilePath, "CGM", ProcessFileStatus.VALIDATED, "cgm.zip", "cgm-document-id", OffsetDateTime.now());
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse("2024-06-18T09:30Z"), TaskStatus.READY, List.of(raoRequestProcessFile, cgmProcessFile), List.of(raoRequestProcessFile, cgmProcessFile), null, null, null, null);
 
-        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath("http://test-uri/F302", 1)).thenReturn("preSignedUrl");
-        RequestMessage requestMessage = new RequestMessage();
-        Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenReturn(requestMessage);
-        Payload payload = new Payload();
+        final RequestMessage requestMessage = new RequestMessage();
+        final Payload payload = new Payload();
+        final RequestItems requestItems = new RequestItems();
+        final RequestItem requestItem = new RequestItem();
+        final Files files = new Files();
+        final File file = new File();
         requestMessage.setPayload(payload);
-        RequestItems requestItems = new RequestItems();
         payload.setRequestItems(requestItems);
-        RequestItem requestItem = new RequestItem();
         requestItem.setTimeInterval("2024-06-18T09:00Z/2024-06-18T10:00Z");
-        Files files = new Files();
         requestItem.setFiles(files);
         requestItems.getRequestItem().add(requestItem);
-        File file = new File();
         files.getFile().add(file);
         file.setUrl("documentIdentification://cgm-document-id");
 
+        Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath("http://test-uri/F302", 1)).thenReturn("preSignedUrl");
+        Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenReturn(requestMessage);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cgmFilePath, 1)).thenReturn("cgm-presigned-url");
 
         Assertions.assertThatExceptionOfType(CoreCCAdapterException.class)
@@ -171,45 +173,45 @@ class CoreCCAdapterServiceTest {
 
     @Test
     void singleVersionOfEachFilePresentExceptDcCgmTest() throws RaoRequestImportException {
-        UUID taskId = UUID.randomUUID();
-        OffsetDateTime taskTimestamp = OffsetDateTime.parse("2024-06-18T09:30Z");
-        String raorequestFilePath = "http://test-uri/RAOREQUEST";
-        ProcessFileDto raoRequestProcessFile = new ProcessFileDto(raorequestFilePath, "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
-        String cgmFilePath = "http://test-uri/CGM";
-        ProcessFileDto cgmProcessFile = new ProcessFileDto(cgmFilePath, "CGM", ProcessFileStatus.VALIDATED, "cgm.zip", "cgm-document-id", OffsetDateTime.now());
-        String glskFilePath = "http://test-uri/GLSK";
-        ProcessFileDto glskProcessFile = new ProcessFileDto(glskFilePath, "GLSK", ProcessFileStatus.VALIDATED, "glsk.xml", "glsk-document-id", OffsetDateTime.now());
-        String cbcoraFilePath = "http://test-uri/CBCORA";
-        ProcessFileDto cbcoraProcessFile = new ProcessFileDto(cbcoraFilePath, "CBCORA", ProcessFileStatus.VALIDATED, "cbcora.xml", "cbcora-document-id", OffsetDateTime.now());
-        String refprogFilePath = "http://test-uri/REFPROG";
-        ProcessFileDto refprogProcessFile = new ProcessFileDto(refprogFilePath, "REFPROG", ProcessFileStatus.VALIDATED, "refprog.xml", "refprog-document-id", OffsetDateTime.now());
-        String virtualhubFilePath = "http://test-uri/VIRTUALHUB";
-        ProcessFileDto virtualhubProcessFile = new ProcessFileDto(virtualhubFilePath, "VIRTUALHUB", ProcessFileStatus.VALIDATED, "virtualhub.xml", "virtualhub-document-id", OffsetDateTime.now());
-        TaskDto taskDto = new TaskDto(taskId, taskTimestamp, TaskStatus.READY,
+        final boolean automaticLauch = false;
+        final UUID taskId = UUID.randomUUID();
+        final OffsetDateTime taskTimestamp = OffsetDateTime.parse("2024-06-18T09:30Z");
+        final String raorequestFilePath = "http://test-uri/RAOREQUEST";
+        final ProcessFileDto raoRequestProcessFile = new ProcessFileDto(raorequestFilePath, "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
+        final String cgmFilePath = "http://test-uri/CGM";
+        final ProcessFileDto cgmProcessFile = new ProcessFileDto(cgmFilePath, "CGM", ProcessFileStatus.VALIDATED, "cgm.zip", "cgm-document-id", OffsetDateTime.now());
+        final String glskFilePath = "http://test-uri/GLSK";
+        final ProcessFileDto glskProcessFile = new ProcessFileDto(glskFilePath, "GLSK", ProcessFileStatus.VALIDATED, "glsk.xml", "glsk-document-id", OffsetDateTime.now());
+        final String cbcoraFilePath = "http://test-uri/CBCORA";
+        final ProcessFileDto cbcoraProcessFile = new ProcessFileDto(cbcoraFilePath, "CBCORA", ProcessFileStatus.VALIDATED, "cbcora.xml", "cbcora-document-id", OffsetDateTime.now());
+        final String refprogFilePath = "http://test-uri/REFPROG";
+        final ProcessFileDto refprogProcessFile = new ProcessFileDto(refprogFilePath, "REFPROG", ProcessFileStatus.VALIDATED, "refprog.xml", "refprog-document-id", OffsetDateTime.now());
+        final String virtualhubFilePath = "http://test-uri/VIRTUALHUB";
+        final ProcessFileDto virtualhubProcessFile = new ProcessFileDto(virtualhubFilePath, "VIRTUALHUB", ProcessFileStatus.VALIDATED, "virtualhub.xml", "virtualhub-document-id", OffsetDateTime.now());
+        final TaskDto taskDto = new TaskDto(taskId, taskTimestamp, TaskStatus.READY,
                 List.of(raoRequestProcessFile, cgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
                 List.of(raoRequestProcessFile, cgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
                 null, null, null, null);
 
-        RequestMessage requestMessage = new RequestMessage();
-        Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenReturn(requestMessage);
-        Payload payload = new Payload();
+        final RequestMessage requestMessage = new RequestMessage();
+        final Payload payload = new Payload();
+        final RequestItems requestItems = new RequestItems();
+        final RequestItem requestItem = new RequestItem();
+        final Files files = new Files();
+        final File cgmFile = new File();
+        final File glskFile = new File();
+        final File cbcoraFile = new File();
+        final File refprogFile = new File();
+        final File virtualhubFile = new File();
         requestMessage.setPayload(payload);
-        RequestItems requestItems = new RequestItems();
         payload.setRequestItems(requestItems);
-        RequestItem requestItem = new RequestItem();
         requestItem.setTimeInterval("2024-06-18T09:00Z/2024-06-18T10:00Z");
-        Files files = new Files();
         requestItem.setFiles(files);
         requestItems.getRequestItem().add(requestItem);
-        File cgmFile = new File();
         cgmFile.setUrl("documentIdentification://cgm-document-id");
-        File glskFile = new File();
         glskFile.setUrl("documentIdentification://glsk-document-id");
-        File cbcoraFile = new File();
         cbcoraFile.setUrl("documentIdentification://cbcora-document-id");
-        File refprogFile = new File();
         refprogFile.setUrl("documentIdentification://refprog-document-id");
-        File virtualhubFile = new File();
         virtualhubFile.setUrl("documentIdentification://virtualhub-document-id");
         files.getFile().add(cgmFile);
         files.getFile().add(glskFile);
@@ -217,6 +219,7 @@ class CoreCCAdapterServiceTest {
         files.getFile().add(refprogFile);
         files.getFile().add(virtualhubFile);
 
+        Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenReturn(requestMessage);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(raorequestFilePath, 1)).thenReturn("raorequest-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cgmFilePath, 1)).thenReturn("cgm-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(glskFilePath, 1)).thenReturn("glsk-presigned-url");
@@ -224,17 +227,17 @@ class CoreCCAdapterServiceTest {
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(refprogFilePath, 1)).thenReturn("refprog-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(virtualhubFilePath, 1)).thenReturn("virtualhub-presigned-url");
 
-        service.handleTask(taskDto, false);
+        service.handleTask(taskDto, automaticLauch);
 
-        ArgumentCaptor<CoreCCRequest> coreCCRequestArgumentCaptor = ArgumentCaptor.forClass(CoreCCRequest.class);
+        final ArgumentCaptor<CoreCCRequest> coreCCRequestArgumentCaptor = ArgumentCaptor.forClass(CoreCCRequest.class);
         Mockito.verify(coreCCClient, Mockito.timeout(100).times(1)).run(coreCCRequestArgumentCaptor.capture());
         Mockito.verify(restTemplate, Mockito.times(2)).put(Mockito.anyString(), Mockito.eq(TaskDto.class));
-        CoreCCRequest coreCCRequest = coreCCRequestArgumentCaptor.getValue();
+        final CoreCCRequest coreCCRequest = coreCCRequestArgumentCaptor.getValue();
         Assertions.assertThat(coreCCRequest)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("id", taskId.toString())
                 .hasFieldOrPropertyWithValue("timestamp", taskTimestamp)
-                .hasFieldOrPropertyWithValue("launchedAutomatically", false)
+                .hasFieldOrPropertyWithValue("launchedAutomatically", automaticLauch)
                 .hasFieldOrPropertyWithValue("taskParameterList", null);
         Assertions.assertThat(coreCCRequest.getCgm())
                 .isNotNull()
@@ -266,44 +269,44 @@ class CoreCCAdapterServiceTest {
 
     @Test
     void singleVersionOfEachFilePresentTest() throws RaoRequestImportException {
-        UUID taskId = UUID.randomUUID();
-        OffsetDateTime taskTimestamp = OffsetDateTime.parse("2024-06-18T09:30Z");
-        String raorequestFilePath = "http://test-uri/RAOREQUEST";
-        ProcessFileDto raoRequestProcessFile = new ProcessFileDto(raorequestFilePath, "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
-        String cgmFilePath = "http://test-uri/CGM";
-        ProcessFileDto cgmProcessFile = new ProcessFileDto(cgmFilePath, "CGM", ProcessFileStatus.VALIDATED, "cgm.zip", "cgm-document-id", OffsetDateTime.now());
-        String dccgmFilePath = "http://test-uri/DCCGM";
-        ProcessFileDto dccgmProcessFile = new ProcessFileDto(dccgmFilePath, "DCCGM", ProcessFileStatus.VALIDATED, "dccgm.zip", "dccgm-document-id", OffsetDateTime.now());
-        String glskFilePath = "http://test-uri/GLSK";
-        ProcessFileDto glskProcessFile = new ProcessFileDto(glskFilePath, "GLSK", ProcessFileStatus.VALIDATED, "glsk.xml", "glsk-document-id", OffsetDateTime.now());
-        String cbcoraFilePath = "http://test-uri/CBCORA";
-        ProcessFileDto cbcoraProcessFile = new ProcessFileDto(cbcoraFilePath, "CBCORA", ProcessFileStatus.VALIDATED, "cbcora.xml", "cbcora-document-id", OffsetDateTime.now());
-        String refprogFilePath = "http://test-uri/REFPROG";
-        ProcessFileDto refprogProcessFile = new ProcessFileDto(refprogFilePath, "REFPROG", ProcessFileStatus.VALIDATED, "refprog.xml", "refprog-document-id", OffsetDateTime.now());
-        String virtualhubFilePath = "http://test-uri/VIRTUALHUB";
-        ProcessFileDto virtualhubProcessFile = new ProcessFileDto(virtualhubFilePath, "VIRTUALHUB", ProcessFileStatus.VALIDATED, "virtualhub.xml", "virtualhub-document-id", OffsetDateTime.now());
-        TaskDto taskDto = new TaskDto(taskId, taskTimestamp, TaskStatus.READY,
+        final boolean automaticLaunch = true;
+        final UUID taskId = UUID.randomUUID();
+        final OffsetDateTime taskTimestamp = OffsetDateTime.parse("2024-06-18T09:30Z");
+        final String raorequestFilePath = "http://test-uri/RAOREQUEST";
+        final ProcessFileDto raoRequestProcessFile = new ProcessFileDto(raorequestFilePath, "RAOREQUEST", ProcessFileStatus.VALIDATED, "raorequest.xml", null, OffsetDateTime.now());
+        final String cgmFilePath = "http://test-uri/CGM";
+        final ProcessFileDto cgmProcessFile = new ProcessFileDto(cgmFilePath, "CGM", ProcessFileStatus.VALIDATED, "cgm.zip", "cgm-document-id", OffsetDateTime.now());
+        final String dccgmFilePath = "http://test-uri/DCCGM";
+        final ProcessFileDto dccgmProcessFile = new ProcessFileDto(dccgmFilePath, "DCCGM", ProcessFileStatus.VALIDATED, "dccgm.zip", "dccgm-document-id", OffsetDateTime.now());
+        final String glskFilePath = "http://test-uri/GLSK";
+        final ProcessFileDto glskProcessFile = new ProcessFileDto(glskFilePath, "GLSK", ProcessFileStatus.VALIDATED, "glsk.xml", "glsk-document-id", OffsetDateTime.now());
+        final String cbcoraFilePath = "http://test-uri/CBCORA";
+        final ProcessFileDto cbcoraProcessFile = new ProcessFileDto(cbcoraFilePath, "CBCORA", ProcessFileStatus.VALIDATED, "cbcora.xml", "cbcora-document-id", OffsetDateTime.now());
+        final String refprogFilePath = "http://test-uri/REFPROG";
+        final ProcessFileDto refprogProcessFile = new ProcessFileDto(refprogFilePath, "REFPROG", ProcessFileStatus.VALIDATED, "refprog.xml", "refprog-document-id", OffsetDateTime.now());
+        final String virtualhubFilePath = "http://test-uri/VIRTUALHUB";
+        final ProcessFileDto virtualhubProcessFile = new ProcessFileDto(virtualhubFilePath, "VIRTUALHUB", ProcessFileStatus.VALIDATED, "virtualhub.xml", "virtualhub-document-id", OffsetDateTime.now());
+        final TaskDto taskDto = new TaskDto(taskId, taskTimestamp, TaskStatus.READY,
                 List.of(raoRequestProcessFile, cgmProcessFile, dccgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
                 List.of(raoRequestProcessFile, cgmProcessFile, dccgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
-                null, null, null, null);
+                null, null, null, List.of());
 
-        RequestMessage requestMessage = new RequestMessage();
-        Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenReturn(requestMessage);
-        Payload payload = new Payload();
+        final RequestMessage requestMessage = new RequestMessage();
+        final Payload payload = new Payload();
+        final RequestItems requestItems = new RequestItems();
+        final RequestItem requestItem = new RequestItem();
+        final Files files = new Files();
+        final File cgmFile = new File();
+        final File dccgmFile = new File();
+        final File glskFile = new File();
+        final File cbcoraFile = new File();
+        final File refprogFile = new File();
+        final File virtualhubFile = new File();
         requestMessage.setPayload(payload);
-        RequestItems requestItems = new RequestItems();
         payload.setRequestItems(requestItems);
-        RequestItem requestItem = new RequestItem();
         requestItem.setTimeInterval("2024-06-18T09:00Z/2024-06-18T10:00Z");
-        Files files = new Files();
         requestItem.setFiles(files);
         requestItems.getRequestItem().add(requestItem);
-        File cgmFile = new File();
-        File dccgmFile = new File();
-        File glskFile = new File();
-        File cbcoraFile = new File();
-        File refprogFile = new File();
-        File virtualhubFile = new File();
         cgmFile.setUrl("documentIdentification://cgm-document-id");
         dccgmFile.setUrl("documentIdentification://dccgm-document-id");
         glskFile.setUrl("documentIdentification://glsk-document-id");
@@ -317,6 +320,7 @@ class CoreCCAdapterServiceTest {
         files.getFile().add(refprogFile);
         files.getFile().add(virtualhubFile);
 
+        Mockito.when(fileImporter.importRaoRequest(Mockito.any())).thenReturn(requestMessage);
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(raorequestFilePath, 1)).thenReturn("raorequest-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cgmFilePath, 1)).thenReturn("cgm-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(dccgmFilePath, 1)).thenReturn("dccgm-presigned-url");
@@ -325,18 +329,18 @@ class CoreCCAdapterServiceTest {
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(refprogFilePath, 1)).thenReturn("refprog-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(virtualhubFilePath, 1)).thenReturn("virtualhub-presigned-url");
 
-        service.handleTask(taskDto, false);
+        service.handleTask(taskDto, automaticLaunch);
 
-        ArgumentCaptor<CoreCCRequest> coreCCRequestArgumentCaptor = ArgumentCaptor.forClass(CoreCCRequest.class);
+        final ArgumentCaptor<CoreCCRequest> coreCCRequestArgumentCaptor = ArgumentCaptor.forClass(CoreCCRequest.class);
         Mockito.verify(coreCCClient, Mockito.timeout(100).times(1)).run(coreCCRequestArgumentCaptor.capture());
         Mockito.verify(restTemplate, Mockito.times(2)).put(Mockito.anyString(), Mockito.eq(TaskDto.class));
-        CoreCCRequest coreCCRequest = coreCCRequestArgumentCaptor.getValue();
+        final CoreCCRequest coreCCRequest = coreCCRequestArgumentCaptor.getValue();
         Assertions.assertThat(coreCCRequest)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("id", taskId.toString())
                 .hasFieldOrPropertyWithValue("timestamp", taskTimestamp)
-                .hasFieldOrPropertyWithValue("launchedAutomatically", false)
-                .hasFieldOrPropertyWithValue("taskParameterList", null);
+                .hasFieldOrPropertyWithValue("launchedAutomatically", automaticLaunch)
+                .hasFieldOrPropertyWithValue("taskParameterList", List.of());
         Assertions.assertThat(coreCCRequest.getCgm())
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("filename", "cgm.zip")

@@ -13,7 +13,7 @@
     <artifactId>gridcapa-core-cc-adapter</artifactId>
     <version>1.2.0-SNAPSHOT</version>
     <name>gridcapa-core-cc-adapter</name>
-    <description>Service responsible of launching a task in core-cc process.</description>
+    <description>Service responsible for launching a task in core-cc process</description>
 
     <licenses>
         <license>

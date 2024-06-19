@@ -30,7 +30,7 @@ class FileImporterTest {
         Mockito.when(urlValidationService.openUrlStream(Mockito.anyString()))
                 .thenReturn(null);
 
-        CoreCCFileResource raoRequestFileResource = new CoreCCFileResource("filename", "invalid-url");
+        final CoreCCFileResource raoRequestFileResource = new CoreCCFileResource("filename", "invalid-url");
         Assertions.assertThatExceptionOfType(RaoRequestImportException.class)
                 .isThrownBy(() -> fileImporter.importRaoRequest(raoRequestFileResource))
                 .withCauseInstanceOf(JAXBException.class)

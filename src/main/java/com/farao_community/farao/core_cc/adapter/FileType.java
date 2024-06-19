@@ -14,5 +14,5 @@ public enum FileType {
     RAOREQUEST,
     REFPROG,
     VIRTUALHUB
-    // TODO Voir si on peut mutualiser cette énumération avec celle du data-bridge
+    // TODO Maybe use this Enum better? Or mutualize it with the one in data-bridge?
 }

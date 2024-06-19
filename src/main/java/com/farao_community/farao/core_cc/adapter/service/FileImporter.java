@@ -37,7 +37,7 @@ public class FileImporter {
         try (InputStream raoRequestInputStream = urlValidationService.openUrlStream(raoRequestFileResource.getUrl())) {
             return JaxbUtil.unmarshalContent(RequestMessage.class, raoRequestInputStream);
         } catch (IOException e) {
-            String errorMessage = String.format("Cannot download rao request file from URL '%s'", raoRequestFileResource.getUrl());
+            final String errorMessage = String.format("Cannot download rao request file from URL '%s'", raoRequestFileResource.getUrl());
             LOGGER.error(errorMessage);
             throw new RaoRequestImportException(errorMessage, e);
         } catch (JAXBException e) {
