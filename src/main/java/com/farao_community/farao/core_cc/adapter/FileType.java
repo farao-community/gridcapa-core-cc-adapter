@@ -14,5 +14,4 @@ public enum FileType {
     RAOREQUEST,
     REFPROG,
     VIRTUALHUB
-    // TODO Maybe use this Enum better? Or mutualize it with the one in data-bridge?
 }

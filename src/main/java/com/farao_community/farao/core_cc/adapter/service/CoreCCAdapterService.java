@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.threeten.extra.Interval;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
@@ -61,11 +62,12 @@ public class CoreCCAdapterService {
         final OffsetDateTime taskTimestamp = taskDto.getTimestamp();
         try {
             LOGGER.info("Handling {} run request on TS {} ", runMode, taskTimestamp);
-            final CoreCCRequest coreCCRequest = getCoreCCRequest(taskDto, isLaunchedAutomatically);
+            List<ProcessFileDto> inputFiles = getInputProcessFilesFromRaoRequest(taskDto);
+            final CoreCCRequest coreCCRequest = getCoreCCRequest(taskDto, inputFiles, isLaunchedAutomatically);
 
             eventsLogger.info("Task launched on TS {}", taskTimestamp);
             updateTaskStatusToPending(taskTimestamp);
-            addNewRunInTaskHistory(taskTimestamp);
+            addNewRunInTaskHistory(taskTimestamp, inputFiles);
 
             runAsync(coreCCRequest);
         } catch (RaoRequestImportException rrie) {
@@ -83,28 +85,35 @@ public class CoreCCAdapterService {
         CompletableFuture.runAsync(() -> coreCCClient.run(request));
     }
 
-    private CoreCCRequest getCoreCCRequest(TaskDto taskDto, boolean isLaunchedAutomatically) throws RaoRequestImportException {
-        final String id = taskDto.getId().toString();
+    private List<ProcessFileDto> getInputProcessFilesFromRaoRequest(TaskDto taskDto) throws RaoRequestImportException {
         final OffsetDateTime taskTimestamp = taskDto.getTimestamp();
         final List<ProcessFileDto> availableInputFiles = taskDto.getAvailableInputs();
 
         final ProcessFileDto raoRequestProcessFile = findRaoRequestProcessFile(taskDto.getInputs())
                 .orElseThrow(() -> new MissingFileException(String.format("No RAOREQUEST file found in task %s", taskTimestamp)));
 
-        final EnumMap<FileType, CoreCCFileResource> inputFilesMap = new EnumMap<>(FileType.class);
-        final CoreCCFileResource raoRequestFileResource = getCoreCCFileResource(raoRequestProcessFile);
-        inputFilesMap.put(FileType.RAOREQUEST, raoRequestFileResource);
+        final List<ProcessFileDto> inputFiles = new ArrayList<>();
+        inputFiles.add(raoRequestProcessFile);
 
+        final CoreCCFileResource raoRequestFileResource = getCoreCCFileResource(raoRequestProcessFile);
         getDocumentIdsFromRaoRequest(taskTimestamp, raoRequestFileResource).stream()
                 .map(documentId -> findProcessFileMatchingDocumentId(availableInputFiles, documentId)
                         .orElseThrow(() -> new MissingFileException(String.format("No file found in task %s matching DocumentId %s", taskTimestamp, documentId))))
-                .forEach(processFile -> addProcessFileInInputFilesMap(processFile, inputFilesMap));
+                .forEach(inputFiles::add);
 
         // TODO Remove this code specific to VIRTUALHUB files when Coreso has made it clear how to handle them
         final ProcessFileDto virtualhubProcessFile = findVirtualhubProcessFile(taskDto.getInputs())
                 .orElseThrow(() -> new MissingFileException(String.format("No VIRTUALHUB file found in task %s", taskTimestamp)));
-        final CoreCCFileResource virtualhubsFileResource = getCoreCCFileResource(virtualhubProcessFile);
-        inputFilesMap.put(FileType.VIRTUALHUB, virtualhubsFileResource);
+        inputFiles.add(virtualhubProcessFile);
+
+        return inputFiles;
+    }
+
+    private CoreCCRequest getCoreCCRequest(TaskDto taskDto, List<ProcessFileDto> inputFiles, boolean isLaunchedAutomatically) {
+        final String id = taskDto.getId().toString();
+        final OffsetDateTime taskTimestamp = taskDto.getTimestamp();
+        final EnumMap<FileType, CoreCCFileResource> inputFilesMap = new EnumMap<>(FileType.class);
+        inputFiles.forEach(inputFile -> addProcessFileInInputFilesMap(inputFile, inputFilesMap));
 
         return new CoreCCRequest(
                 id,
@@ -155,24 +164,12 @@ public class CoreCCAdapterService {
     }
 
     private void addProcessFileInInputFilesMap(ProcessFileDto processFileDto, EnumMap<FileType, CoreCCFileResource> inputFiles) {
-        final String fileType = processFileDto.getFileType();
-        LOGGER.info("Received {} with DocumentId {}", fileType, processFileDto.getDocumentId());
-        switch (fileType) {
-            case "CGM" -> inputFiles.put(FileType.CGM, getCoreCCFileResource(processFileDto));
-            case "DCCGM" -> {
-                // TODO It seems that the filePath will never be null for any filetype, as the processFileDto is retrieved
-                //  from the "available inputs" of the task, which is only populated with files from database.
-                //  Therefore, it could maybe be possible to simplify the code by removing switch and only doing something like:
-                //  inputFiles.put(FileType.valueOf(fileType), getCoreCCFileResource(processFileDto));
-                if (null != processFileDto.getFilePath()) {
-                    inputFiles.put(FileType.DCCGM, getCoreCCFileResource(processFileDto));
-                }
-            }
-            case "CBCORA" -> inputFiles.put(FileType.CBCORA, getCoreCCFileResource(processFileDto));
-            case "GLSK" -> inputFiles.put(FileType.GLSK, getCoreCCFileResource(processFileDto));
-            case "REFPROG" -> inputFiles.put(FileType.REFPROG, getCoreCCFileResource(processFileDto));
-            case "VIRTUALHUB" -> inputFiles.put(FileType.VIRTUALHUB, getCoreCCFileResource(processFileDto));
-            default -> LOGGER.warn("Unexpected filetype {}, file {} won't be added to CoreCCRequest", fileType, processFileDto.getFilename());
+        try {
+            final FileType fileType = FileType.valueOf(processFileDto.getFileType());
+            LOGGER.info("Received {} with DocumentId {}", fileType, processFileDto.getDocumentId());
+            inputFiles.put(fileType, getCoreCCFileResource(processFileDto));
+        } catch (IllegalArgumentException iae) {
+            LOGGER.warn("Unexpected filetype {}, file {} won't be added to CoreCCRequest", processFileDto.getFileType(), processFileDto.getFilename());
         }
     }
 
@@ -187,8 +184,8 @@ public class CoreCCAdapterService {
         restTemplateBuilder.build().put(url, TaskDto.class);
     }
 
-    private void addNewRunInTaskHistory(OffsetDateTime timestamp) {
+    private void addNewRunInTaskHistory(OffsetDateTime timestamp, List<ProcessFileDto> inputFiles) {
         final String url = taskManagerTimestampBaseUrl + timestamp + "/runHistory";
-        restTemplateBuilder.build().put(url, TaskDto.class);
+        restTemplateBuilder.build().put(url, inputFiles);
     }
 }
