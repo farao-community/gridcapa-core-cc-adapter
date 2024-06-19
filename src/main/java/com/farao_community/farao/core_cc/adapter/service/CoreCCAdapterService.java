@@ -160,7 +160,11 @@ public class CoreCCAdapterService {
         switch (fileType) {
             case "CGM" -> inputFiles.put(FileType.CGM, getCoreCCFileResource(processFileDto));
             case "DCCGM" -> {
-                if (null == processFileDto.getFilePath()) {
+                // TODO It seems that the filePath will never be null for any filetype, as the processFileDto is retrieved
+                //  from the "available inputs" of the task, which is only populated with files from database.
+                //  Therefore, it could maybe be possible to simplify the code by removing switch and only doing something like:
+                //  inputFiles.put(FileType.valueOf(fileType), getCoreCCFileResource(processFileDto));
+                if (null != processFileDto.getFilePath()) {
                     inputFiles.put(FileType.DCCGM, getCoreCCFileResource(processFileDto));
                 }
             }
