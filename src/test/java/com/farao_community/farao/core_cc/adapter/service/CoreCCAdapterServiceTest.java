@@ -231,7 +231,7 @@ class CoreCCAdapterServiceTest {
 
         final ArgumentCaptor<CoreCCRequest> coreCCRequestArgumentCaptor = ArgumentCaptor.forClass(CoreCCRequest.class);
         Mockito.verify(coreCCClient, Mockito.timeout(100).times(1)).run(coreCCRequestArgumentCaptor.capture());
-        Mockito.verify(restTemplate, Mockito.times(1)).put(Mockito.anyString(), Mockito.eq(TaskDto.class));
+        Mockito.verify(restTemplate, Mockito.times(1)).put(Mockito.anyString(), Mockito.eq(null));
         Mockito.verify(restTemplate, Mockito.times(1)).put(Mockito.anyString(), Mockito.any(List.class));
         final CoreCCRequest coreCCRequest = coreCCRequestArgumentCaptor.getValue();
         Assertions.assertThat(coreCCRequest)
@@ -334,7 +334,7 @@ class CoreCCAdapterServiceTest {
 
         final ArgumentCaptor<CoreCCRequest> coreCCRequestArgumentCaptor = ArgumentCaptor.forClass(CoreCCRequest.class);
         Mockito.verify(coreCCClient, Mockito.timeout(100).times(1)).run(coreCCRequestArgumentCaptor.capture());
-        Mockito.verify(restTemplate, Mockito.times(1)).put(Mockito.anyString(), Mockito.eq(TaskDto.class));
+        Mockito.verify(restTemplate, Mockito.times(1)).put(Mockito.anyString(), Mockito.eq(null));
         Mockito.verify(restTemplate, Mockito.times(1)).put(Mockito.anyString(), Mockito.any(List.class));
         final CoreCCRequest coreCCRequest = coreCCRequestArgumentCaptor.getValue();
         Assertions.assertThat(coreCCRequest)

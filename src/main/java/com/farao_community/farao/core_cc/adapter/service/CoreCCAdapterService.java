@@ -181,7 +181,7 @@ public class CoreCCAdapterService {
 
     private void updateTaskStatusToPending(OffsetDateTime timestamp) {
         final String url = taskManagerTimestampBaseUrl + timestamp + "/status?status=PENDING";
-        restTemplateBuilder.build().put(url, TaskDto.class);
+        restTemplateBuilder.build().put(url, null);
     }
 
     private void addNewRunInTaskHistory(OffsetDateTime timestamp, List<ProcessFileDto> inputFiles) {
