@@ -48,8 +48,9 @@ class JobLauncherManualServiceTest {
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
+        List<TaskParameterDto> emptyList = List.of();
         Assertions.assertThatExceptionOfType(TaskNotFoundException.class)
-                .isThrownBy(() -> service.launchJob("", List.of()));
+                .isThrownBy(() -> service.launchJob("", emptyList));
         Mockito.verifyNoInteractions(adapterService);
     }
 
