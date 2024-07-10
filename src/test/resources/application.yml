@@ -41,8 +41,7 @@ core-cc-adapter:
   auto-trigger-filetypes:
     - RAOREQUEST
     - CRAC
-  url:
-    task-manager-timestamp-url: http://test-uri/
+  task-manager-timestamp-url: http://test-uri/
   whitelist:
     - http://test-uri/
     - file:/
