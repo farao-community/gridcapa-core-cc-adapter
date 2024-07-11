@@ -6,6 +6,9 @@
  */
 package com.farao_community.farao.core_cc.adapter;
 
+/**
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
+ */
 public enum FileType {
     CGM,
     DCCGM,

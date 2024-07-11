@@ -6,6 +6,9 @@
  */
 package com.farao_community.farao.core_cc.adapter.exception;
 
+/**
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
+ */
 public class MissingFileException extends RuntimeException {
 
     public MissingFileException(String message) {

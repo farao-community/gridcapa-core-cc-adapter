@@ -29,6 +29,9 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
+ */
 @SpringBootTest
 class JobLauncherManualServiceTest {
 

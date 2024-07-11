@@ -10,6 +10,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
 
+/**
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
+ */
 @ConfigurationProperties("core-cc-adapter")
 public record CoreCCAdapterConfiguration(String taskManagerTimestampUrl,
                                          List<String> autoTriggerFiletypes,

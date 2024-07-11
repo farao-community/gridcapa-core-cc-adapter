@@ -25,6 +25,7 @@ import java.util.List;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 @SpringBootTest
 class JobLauncherControllerTest {

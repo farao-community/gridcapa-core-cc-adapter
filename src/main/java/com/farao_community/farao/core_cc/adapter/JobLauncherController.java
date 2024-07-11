@@ -21,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
+ */
 @RestController
 public class JobLauncherController {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherController.class);
