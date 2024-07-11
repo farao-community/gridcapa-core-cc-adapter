@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    function:
+      definition: consumeTaskDtoUpdate
+
+core-cc-adapter:
+  process:
+    timezone: CET
+    days-to-add: 0
