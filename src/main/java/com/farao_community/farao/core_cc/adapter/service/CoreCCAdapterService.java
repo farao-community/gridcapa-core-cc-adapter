@@ -12,6 +12,7 @@ import com.farao_community.farao.core_cc.adapter.exception.CoreCCAdapterExceptio
 import com.farao_community.farao.core_cc.adapter.exception.MissingFileException;
 import com.farao_community.farao.core_cc.adapter.exception.RaoRequestImportException;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
+import com.farao_community.farao.gridcapa.task_manager.api.ProcessRunDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCFileResource;
 import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCRequest;
@@ -63,12 +64,12 @@ public class CoreCCAdapterService {
         try {
             LOGGER.info("Handling {} run request on TS {} ", runMode, taskTimestamp);
             List<ProcessFileDto> inputFiles = getInputProcessFilesFromRaoRequest(taskDto);
-            final CoreCCRequest coreCCRequest = getCoreCCRequest(taskDto, inputFiles, isLaunchedAutomatically);
 
             eventsLogger.info("Task launched on TS {}", taskTimestamp);
             updateTaskStatusToPending(taskTimestamp);
             addNewRunInTaskHistory(taskTimestamp, inputFiles);
-
+            TaskDto updatedTaskDto = getUpdatedTask(taskTimestamp);
+            final CoreCCRequest coreCCRequest = getCoreCCRequest(updatedTaskDto, inputFiles, isLaunchedAutomatically);
             runAsync(coreCCRequest);
         } catch (RaoRequestImportException rrie) {
             throw new CoreCCAdapterException("Error occurred during loading of RAOREQUEST file content", rrie);
@@ -117,6 +118,7 @@ public class CoreCCAdapterService {
 
         return new CoreCCRequest(
                 id,
+                getCurrentRunId(taskDto),
                 taskTimestamp,
                 inputFilesMap.get(FileType.CGM),
                 inputFilesMap.get(FileType.DCCGM),
@@ -187,5 +189,20 @@ public class CoreCCAdapterService {
     private void addNewRunInTaskHistory(OffsetDateTime timestamp, List<ProcessFileDto> inputFiles) {
         final String url = taskManagerTimestampBaseUrl + timestamp + "/runHistory";
         restTemplateBuilder.build().put(url, inputFiles);
+    }
+
+    private TaskDto getUpdatedTask(OffsetDateTime timestamp) {
+        final String url = taskManagerTimestampBaseUrl + timestamp;
+        return restTemplateBuilder.build().getForEntity(url, TaskDto.class).getBody();
+    }
+
+    private String getCurrentRunId(TaskDto taskDto) {
+        List<ProcessRunDto> runHistory = taskDto.getRunHistory();
+        if (runHistory == null || runHistory.isEmpty()) {
+            LOGGER.warn("Failed to handle manual run request on timestamp {} because it has no run history", taskDto.getTimestamp());
+            throw new CoreCCAdapterException("Failed to handle manual run request on timestamp because it has no run history");
+        }
+        runHistory.sort((o1, o2) -> o2.getExecutionDate().compareTo(o1.getExecutionDate()));
+        return runHistory.get(0).getId().toString();
     }
 }

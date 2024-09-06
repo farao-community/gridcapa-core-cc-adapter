@@ -11,6 +11,7 @@ import com.farao_community.farao.core_cc.adapter.exception.MissingFileException;
 import com.farao_community.farao.core_cc.adapter.exception.RaoRequestImportException;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileStatus;
+import com.farao_community.farao.gridcapa.task_manager.api.ProcessRunDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCRequest;
@@ -31,9 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -192,7 +195,13 @@ class CoreCCAdapterServiceTest {
                 List.of(raoRequestProcessFile, cgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
                 List.of(raoRequestProcessFile, cgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
                 null, null, null, null);
-
+        final List<ProcessRunDto> runHistory = new ArrayList<>();
+        runHistory.add(new ProcessRunDto(UUID.randomUUID(), taskTimestamp, List.of(raoRequestProcessFile, cgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile)));
+        runHistory.add(new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.parse("2024-09-18T09:30Z"), List.of(raoRequestProcessFile, cgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile)));
+        final TaskDto updatedTtaskDto = new TaskDto(taskId, taskTimestamp, TaskStatus.READY,
+                List.of(raoRequestProcessFile, cgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
+                List.of(raoRequestProcessFile, cgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
+                null, null, runHistory, null);
         final RequestMessage requestMessage = new RequestMessage();
         final Payload payload = new Payload();
         final RequestItems requestItems = new RequestItems();
@@ -226,6 +235,9 @@ class CoreCCAdapterServiceTest {
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cbcoraFilePath, 1)).thenReturn("cbcora-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(refprogFilePath, 1)).thenReturn("refprog-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(virtualhubFilePath, 1)).thenReturn("virtualhub-presigned-url");
+        ResponseEntity response = Mockito.mock(ResponseEntity.class);
+        Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(response);
+        Mockito.when(response.getBody()).thenReturn(updatedTtaskDto);
 
         service.handleTask(taskDto, automaticLauch);
 
@@ -291,6 +303,13 @@ class CoreCCAdapterServiceTest {
                 List.of(raoRequestProcessFile, cgmProcessFile, dccgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
                 List.of(raoRequestProcessFile, cgmProcessFile, dccgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
                 null, null, null, List.of());
+        final List<ProcessRunDto> runHistory = new ArrayList<>();
+        runHistory.add(new ProcessRunDto(UUID.randomUUID(), taskTimestamp, List.of(raoRequestProcessFile, cgmProcessFile, dccgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile)));
+        runHistory.add(new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.parse("2024-09-18T09:30Z"), List.of(raoRequestProcessFile, cgmProcessFile, dccgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile)));
+        final TaskDto updatedTtaskDto = new TaskDto(taskId, taskTimestamp, TaskStatus.READY,
+                List.of(raoRequestProcessFile, cgmProcessFile, dccgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
+                List.of(raoRequestProcessFile, cgmProcessFile, dccgmProcessFile, glskProcessFile, cbcoraProcessFile, refprogProcessFile, virtualhubProcessFile),
+                null, null, runHistory, List.of());
 
         final RequestMessage requestMessage = new RequestMessage();
         final Payload payload = new Payload();
@@ -329,6 +348,9 @@ class CoreCCAdapterServiceTest {
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(cbcoraFilePath, 1)).thenReturn("cbcora-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(refprogFilePath, 1)).thenReturn("refprog-presigned-url");
         Mockito.when(minioAdapter.generatePreSignedUrlFromFullMinioPath(virtualhubFilePath, 1)).thenReturn("virtualhub-presigned-url");
+        ResponseEntity response = Mockito.mock(ResponseEntity.class);
+        Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(response);
+        Mockito.when(response.getBody()).thenReturn(updatedTtaskDto);
 
         service.handleTask(taskDto, automaticLaunch);
 
