@@ -19,12 +19,12 @@ import java.util.List;
  * @author Marc Schwitzguebel {@literal <marc.schwitzguebel at rte-france.com>}
  */
 @Service
-public class TaskMangerService {
+public class TaskManagerService {
 
     private final RestTemplateBuilder restTemplateBuilder;
     private final String taskManagerTimestampBaseUrl;
 
-    public TaskMangerService(RestTemplateBuilder restTemplateBuilder, CoreCCAdapterConfiguration coreCCAdapterConfiguration) {
+    public TaskManagerService(RestTemplateBuilder restTemplateBuilder, CoreCCAdapterConfiguration coreCCAdapterConfiguration) {
         this.restTemplateBuilder = restTemplateBuilder;
         this.taskManagerTimestampBaseUrl = coreCCAdapterConfiguration.taskManagerTimestampUrl();
     }

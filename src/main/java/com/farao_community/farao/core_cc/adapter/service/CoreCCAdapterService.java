@@ -44,14 +44,14 @@ public class CoreCCAdapterService {
     private final FileImporter fileImporter;
     private final MinioAdapter minioAdapter;
     private final Logger eventsLogger;
-    private final TaskMangerService taskMangerService;
+    private final TaskManagerService taskManagerService;
 
-    public CoreCCAdapterService(CoreCCClient coreCCClient, FileImporter fileImporter, MinioAdapter minioAdapter, Logger eventsLogger, TaskMangerService taskMangerService) {
+    public CoreCCAdapterService(CoreCCClient coreCCClient, FileImporter fileImporter, MinioAdapter minioAdapter, Logger eventsLogger, TaskManagerService taskManagerService) {
         this.coreCCClient = coreCCClient;
         this.fileImporter = fileImporter;
         this.minioAdapter = minioAdapter;
         this.eventsLogger = eventsLogger;
-        this.taskMangerService = taskMangerService;
+        this.taskManagerService = taskManagerService;
     }
 
     public void handleTask(TaskDto taskDto, boolean isLaunchedAutomatically) {
@@ -62,9 +62,9 @@ public class CoreCCAdapterService {
             List<ProcessFileDto> inputFiles = getInputProcessFilesFromRaoRequest(taskDto);
 
             eventsLogger.info("Task launched on TS {}", taskTimestamp);
-            taskMangerService.updateTaskStatusToPending(taskTimestamp);
-            taskMangerService.addNewRunInTaskHistory(taskTimestamp, inputFiles);
-            TaskDto updatedTaskDto = taskMangerService.getUpdatedTask(taskTimestamp);
+            taskManagerService.updateTaskStatusToPending(taskTimestamp);
+            taskManagerService.addNewRunInTaskHistory(taskTimestamp, inputFiles);
+            TaskDto updatedTaskDto = taskManagerService.getUpdatedTask(taskTimestamp);
             final CoreCCRequest coreCCRequest = getCoreCCRequest(updatedTaskDto, inputFiles, isLaunchedAutomatically);
             runAsync(coreCCRequest);
         } catch (RaoRequestImportException rrie) {
