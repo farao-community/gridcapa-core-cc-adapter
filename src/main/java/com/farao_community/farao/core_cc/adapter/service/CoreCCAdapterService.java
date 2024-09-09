@@ -7,7 +7,6 @@
 package com.farao_community.farao.core_cc.adapter.service;
 
 import com.farao_community.farao.core_cc.adapter.FileType;
-import com.farao_community.farao.core_cc.adapter.configuration.CoreCCAdapterConfiguration;
 import com.farao_community.farao.core_cc.adapter.exception.CoreCCAdapterException;
 import com.farao_community.farao.core_cc.adapter.exception.MissingFileException;
 import com.farao_community.farao.core_cc.adapter.exception.RaoRequestImportException;
@@ -22,7 +21,6 @@ import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import com.unicorn.request.request_payload.RequestItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.threeten.extra.Interval;
 
@@ -46,16 +44,14 @@ public class CoreCCAdapterService {
     private final FileImporter fileImporter;
     private final MinioAdapter minioAdapter;
     private final Logger eventsLogger;
-    private final RestTemplateBuilder restTemplateBuilder;
-    private final String taskManagerTimestampBaseUrl;
+    private final TaskMangerService taskMangerService;
 
-    public CoreCCAdapterService(CoreCCClient coreCCClient, FileImporter fileImporter, MinioAdapter minioAdapter, Logger eventsLogger, RestTemplateBuilder restTemplateBuilder, CoreCCAdapterConfiguration coreCCAdapterConfiguration) {
+    public CoreCCAdapterService(CoreCCClient coreCCClient, FileImporter fileImporter, MinioAdapter minioAdapter, Logger eventsLogger, TaskMangerService taskMangerService) {
         this.coreCCClient = coreCCClient;
         this.fileImporter = fileImporter;
         this.minioAdapter = minioAdapter;
         this.eventsLogger = eventsLogger;
-        this.restTemplateBuilder = restTemplateBuilder;
-        this.taskManagerTimestampBaseUrl = coreCCAdapterConfiguration.taskManagerTimestampUrl();
+        this.taskMangerService = taskMangerService;
     }
 
     public void handleTask(TaskDto taskDto, boolean isLaunchedAutomatically) {
@@ -66,9 +62,9 @@ public class CoreCCAdapterService {
             List<ProcessFileDto> inputFiles = getInputProcessFilesFromRaoRequest(taskDto);
 
             eventsLogger.info("Task launched on TS {}", taskTimestamp);
-            updateTaskStatusToPending(taskTimestamp);
-            addNewRunInTaskHistory(taskTimestamp, inputFiles);
-            TaskDto updatedTaskDto = getUpdatedTask(taskTimestamp);
+            taskMangerService.updateTaskStatusToPending(taskTimestamp);
+            taskMangerService.addNewRunInTaskHistory(taskTimestamp, inputFiles);
+            TaskDto updatedTaskDto = taskMangerService.getUpdatedTask(taskTimestamp);
             final CoreCCRequest coreCCRequest = getCoreCCRequest(updatedTaskDto, inputFiles, isLaunchedAutomatically);
             runAsync(coreCCRequest);
         } catch (RaoRequestImportException rrie) {
@@ -179,21 +175,6 @@ public class CoreCCAdapterService {
         final String filename = processFileDto.getFilename();
         final String fileUrl = minioAdapter.generatePreSignedUrlFromFullMinioPath(processFileDto.getFilePath(), 1);
         return new CoreCCFileResource(filename, fileUrl);
-    }
-
-    private void updateTaskStatusToPending(OffsetDateTime timestamp) {
-        final String url = taskManagerTimestampBaseUrl + timestamp + "/status?status=PENDING";
-        restTemplateBuilder.build().put(url, null);
-    }
-
-    private void addNewRunInTaskHistory(OffsetDateTime timestamp, List<ProcessFileDto> inputFiles) {
-        final String url = taskManagerTimestampBaseUrl + timestamp + "/runHistory";
-        restTemplateBuilder.build().put(url, inputFiles);
-    }
-
-    private TaskDto getUpdatedTask(OffsetDateTime timestamp) {
-        final String url = taskManagerTimestampBaseUrl + timestamp;
-        return restTemplateBuilder.build().getForEntity(url, TaskDto.class).getBody();
     }
 
     private String getCurrentRunId(TaskDto taskDto) {
