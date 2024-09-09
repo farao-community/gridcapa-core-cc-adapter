@@ -79,8 +79,8 @@ class JobLauncherAutoServiceTest {
                 "crac.xml",
                 "documentId",
                 OffsetDateTime.now());
-        final ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
-        final ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        final ProcessRunDto processRunForCrac = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(2), List.of(cracFile));
+        final ProcessRunDto processRunForRaoRequest = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
         final TaskDto taskDto = new TaskDto(
                 UUID.randomUUID(),
                 OffsetDateTime.parse("2022-04-27T10:10Z"),
@@ -114,7 +114,7 @@ class JobLauncherAutoServiceTest {
                 "crac.xml",
                 "documentId",
                 OffsetDateTime.now());
-        final ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        final ProcessRunDto processRunForRaoRequest = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
         final TaskDto taskDto = new TaskDto(
                 UUID.randomUUID(),
                 OffsetDateTime.parse("2022-04-27T10:10Z"),
@@ -148,8 +148,8 @@ class JobLauncherAutoServiceTest {
                 "crac.xml",
                 "documentId",
                 OffsetDateTime.now());
-        final ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
-        final ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        final ProcessRunDto processRunForCrac = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(2), List.of(cracFile));
+        final ProcessRunDto processRunForRaoRequest = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
         final TaskDto taskDto = new TaskDto(
                 UUID.randomUUID(),
                 OffsetDateTime.parse("2022-04-27T10:10Z"),
