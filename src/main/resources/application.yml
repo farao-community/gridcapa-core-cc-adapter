@@ -7,3 +7,9 @@ core-cc-adapter:
   process:
     timezone: CET
     days-to-add: 0
+
+retry:
+  backoff:
+    delay: 10000 # 10s delay before first retry
+    multiplier: 2
+  max-attempts: 5 # the first attempt + 4 potential retry

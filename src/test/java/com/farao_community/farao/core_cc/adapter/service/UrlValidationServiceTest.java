@@ -26,7 +26,7 @@ class UrlValidationServiceTest {
 
         Assertions.assertThatExceptionOfType(CoreCCInvalidDataException.class)
                 .isThrownBy(() -> service.openUrlStream("ftp://test/test.xml"))
-                .withMessage("URL 'ftp://test/test.xml' is not part of application's whitelisted urls: http://test/, https://test/.");
+                .withMessage("URL 'ftp://test/test.xml' is not part of application's whitelisted urls: http://test/, https://test/");
     }
 
     @Test

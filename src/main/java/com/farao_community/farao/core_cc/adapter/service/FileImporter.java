@@ -32,7 +32,7 @@ public class FileImporter {
         this.urlValidationService = urlValidationService;
     }
 
-    public RequestMessage importRaoRequest(CoreCCFileResource raoRequestFileResource) throws RaoRequestImportException {
+    public RequestMessage importRaoRequest(final CoreCCFileResource raoRequestFileResource) throws RaoRequestImportException {
         try (InputStream raoRequestInputStream = urlValidationService.openUrlStream(raoRequestFileResource.getUrl())) {
             return JaxbUtil.unmarshalContent(RequestMessage.class, raoRequestInputStream);
         } catch (IOException e) {

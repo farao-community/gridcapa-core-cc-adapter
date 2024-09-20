@@ -27,9 +27,9 @@ public class UrlValidationService {
         this.whitelist = coreCCAdapterConfiguration.whitelist();
     }
 
-    public InputStream openUrlStream(String urlString) {
+    public InputStream openUrlStream(final String urlString) {
         if (whitelist.stream().noneMatch(urlString::startsWith)) {
-            final String message = String.format("URL '%s' is not part of application's whitelisted urls: %s.", urlString, String.join(", ", whitelist));
+            final String message = String.format("URL '%s' is not part of application's whitelisted urls: %s", urlString, String.join(", ", whitelist));
             throw new CoreCCInvalidDataException(message);
         }
         try {
