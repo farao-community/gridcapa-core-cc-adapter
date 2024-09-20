@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.core_cc.adapter.service;
 
+import com.farao_community.farao.core_cc.adapter.util.LoggingUtil;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
@@ -50,7 +51,8 @@ public class JobLauncherManualService {
                 eventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
             }
         } else {
-            LOGGER.error("Failed to launch task with timestamp {}: could not retrieve task from the task-manager", timestamp);
+            final String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
+            LOGGER.error("Failed to launch task with timestamp {}: could not retrieve task from the task-manager", sanifiedTimestamp);
         }
     }
 

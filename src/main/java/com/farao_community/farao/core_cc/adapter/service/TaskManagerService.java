@@ -7,6 +7,7 @@
 package com.farao_community.farao.core_cc.adapter.service;
 
 import com.farao_community.farao.core_cc.adapter.configuration.CoreCCAdapterConfiguration;
+import com.farao_community.farao.core_cc.adapter.util.LoggingUtil;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
@@ -55,7 +56,8 @@ public class TaskManagerService {
         try {
             final int retryCount = getRetryCount();
             final String requestUrl = getTaskManagerTimestampUrl(timestamp);
-            LOGGER.info(REQUESTING_URL_ATTEMPT, requestUrl, retryCount);
+            final String sanifiedUrl = LoggingUtil.sanifyString(requestUrl);
+            LOGGER.info(REQUESTING_URL_ATTEMPT, sanifiedUrl, retryCount);
             final ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
             return getOptionalFromResponseEntity(responseEntity);
         } catch (RestClientException e) {
