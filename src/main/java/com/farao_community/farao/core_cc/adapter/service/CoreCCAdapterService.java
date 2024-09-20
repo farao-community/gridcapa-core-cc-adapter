@@ -13,6 +13,9 @@ import com.farao_community.farao.core_cc.adapter.exception.RaoRequestImportExcep
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessRunDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
+import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
+import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
+import com.farao_community.farao.gridcapa.task_manager.api.TaskStatusUpdate;
 import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCFileResource;
 import com.farao_community.farao.gridcapa_core_cc.api.resource.CoreCCRequest;
 import com.farao_community.farao.gridcapa_core_cc.app.inputs.rao_request.RequestMessage;
@@ -21,6 +24,7 @@ import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import com.unicorn.request.request_payload.RequestItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
 import org.threeten.extra.Interval;
 
@@ -39,34 +43,55 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class CoreCCAdapterService {
 
+    private static final String TASK_STATUS_UPDATE = "task-status-update";
     private static final Logger LOGGER = LoggerFactory.getLogger(CoreCCAdapterService.class);
+
     private final CoreCCClient coreCCClient;
     private final FileImporter fileImporter;
     private final MinioAdapter minioAdapter;
     private final Logger eventsLogger;
     private final TaskManagerService taskManagerService;
+    private final StreamBridge streamBridge;
 
-    public CoreCCAdapterService(CoreCCClient coreCCClient, FileImporter fileImporter, MinioAdapter minioAdapter, Logger eventsLogger, TaskManagerService taskManagerService) {
+    public CoreCCAdapterService(CoreCCClient coreCCClient, FileImporter fileImporter, MinioAdapter minioAdapter, Logger eventsLogger, TaskManagerService taskManagerService, StreamBridge streamBridge) {
         this.coreCCClient = coreCCClient;
         this.fileImporter = fileImporter;
         this.minioAdapter = minioAdapter;
         this.eventsLogger = eventsLogger;
         this.taskManagerService = taskManagerService;
+        this.streamBridge = streamBridge;
     }
 
-    public void handleTask(TaskDto taskDto, boolean isLaunchedAutomatically) {
-        final String runMode = isLaunchedAutomatically ? "automatic" : "manual";
-        final OffsetDateTime taskTimestamp = taskDto.getTimestamp();
-        try {
-            LOGGER.info("Handling {} run request on TS {} ", runMode, taskTimestamp);
-            List<ProcessFileDto> inputFiles = getInputProcessFilesFromRaoRequest(taskDto);
+    public void handleTask(final TaskDto taskDto, final boolean isLaunchedAutomatically) {
+        handleTask(taskDto, isLaunchedAutomatically, null);
+    }
 
-            eventsLogger.info("Task launched on TS {}", taskTimestamp);
-            taskManagerService.updateTaskStatusToPending(taskTimestamp);
-            taskManagerService.addNewRunInTaskHistory(taskTimestamp, inputFiles);
-            TaskDto updatedTaskDto = taskManagerService.getUpdatedTask(taskTimestamp);
-            final CoreCCRequest coreCCRequest = getCoreCCRequest(updatedTaskDto, inputFiles, isLaunchedAutomatically);
-            runAsync(coreCCRequest);
+    public void handleTask(final TaskDto taskDto, final boolean isLaunchedAutomatically, final List<TaskParameterDto> parameters) {
+        final String runMode = isLaunchedAutomatically ? "automatic" : "manual";
+        final String timestamp = taskDto.getTimestamp().toString();
+        try {
+            LOGGER.info("Handling {} run request on TS {} ", runMode, timestamp);
+            final List<ProcessFileDto> inputFiles = getInputProcessFilesFromRaoRequest(taskDto);
+            final Optional<TaskDto> taskDtoWithRunOpt = taskManagerService.addNewRunInTaskHistory(timestamp, inputFiles);
+            if (taskDtoWithRunOpt.isPresent()) {
+                TaskDto taskDtoWithRun = taskDtoWithRunOpt.get();
+                if (parameters != null && !parameters.isEmpty()) {
+                    taskDtoWithRun = new TaskDto(taskDtoWithRun.getId(), taskDtoWithRun.getTimestamp(), taskDtoWithRun.getStatus(), taskDtoWithRun.getInputs(), taskDtoWithRun.getAvailableInputs(), taskDtoWithRun.getOutputs(), taskDtoWithRun.getProcessEvents(), taskDtoWithRun.getRunHistory(), parameters);
+                }
+
+                final boolean taskStatusUpdated = taskManagerService.updateTaskStatus(timestamp, TaskStatus.PENDING);
+                if (taskStatusUpdated) {
+                    eventsLogger.info("Task launched on TS {}", timestamp);
+                    final CoreCCRequest coreCCRequest = getCoreCCRequest(taskDtoWithRun, inputFiles, isLaunchedAutomatically);
+                    runAsync(coreCCRequest);
+                } else {
+                    eventsLogger.warn("Failed to launch task on TS {}: could not set task's status to PENDING", taskDto.getTimestamp());
+                    streamBridge.send(TASK_STATUS_UPDATE, new TaskStatusUpdate(taskDto.getId(), TaskStatus.ERROR));
+                }
+            } else {
+                eventsLogger.warn("Failed to launch task on TS {}: could not add new run to the task", taskDto.getTimestamp());
+                streamBridge.send(TASK_STATUS_UPDATE, new TaskStatusUpdate(taskDto.getId(), TaskStatus.ERROR));
+            }
         } catch (RaoRequestImportException rrie) {
             throw new CoreCCAdapterException("Error occurred during loading of RAOREQUEST file content", rrie);
         } catch (MissingFileException mfe) {
@@ -74,15 +99,15 @@ public class CoreCCAdapterService {
         } catch (CoreCCAdapterException cccae) {
             throw cccae;
         } catch (Exception e) {
-            throw new CoreCCAdapterException(String.format("Error while handling %s run request on TS %s", runMode, taskTimestamp), e);
+            throw new CoreCCAdapterException(String.format("Error while handling %s run request on TS %s", runMode, timestamp), e);
         }
     }
 
-    private void runAsync(CoreCCRequest request) {
+    private void runAsync(final CoreCCRequest request) {
         CompletableFuture.runAsync(() -> coreCCClient.run(request));
     }
 
-    private List<ProcessFileDto> getInputProcessFilesFromRaoRequest(TaskDto taskDto) throws RaoRequestImportException {
+    private List<ProcessFileDto> getInputProcessFilesFromRaoRequest(final TaskDto taskDto) throws RaoRequestImportException {
         final OffsetDateTime taskTimestamp = taskDto.getTimestamp();
         final List<ProcessFileDto> availableInputFiles = taskDto.getAvailableInputs();
 
@@ -106,7 +131,7 @@ public class CoreCCAdapterService {
         return inputFiles;
     }
 
-    private CoreCCRequest getCoreCCRequest(TaskDto taskDto, List<ProcessFileDto> inputFiles, boolean isLaunchedAutomatically) {
+    private CoreCCRequest getCoreCCRequest(final TaskDto taskDto, final List<ProcessFileDto> inputFiles, final boolean isLaunchedAutomatically) {
         final String id = taskDto.getId().toString();
         final OffsetDateTime taskTimestamp = taskDto.getTimestamp();
         final EnumMap<FileType, CoreCCFileResource> inputFilesMap = new EnumMap<>(FileType.class);
@@ -128,26 +153,26 @@ public class CoreCCAdapterService {
         );
     }
 
-    private static Optional<ProcessFileDto> findRaoRequestProcessFile(List<ProcessFileDto> inputs) {
+    private static Optional<ProcessFileDto> findRaoRequestProcessFile(final List<ProcessFileDto> inputs) {
         return inputs.stream()
                 .filter(f -> "RAOREQUEST".equals(f.getFileType()))
                 .findFirst();
     }
 
     // TODO Remove this method when Coreso has made it clear how to handle VIRTUALHUB files
-    private static Optional<ProcessFileDto> findVirtualhubProcessFile(List<ProcessFileDto> inputs) {
+    private static Optional<ProcessFileDto> findVirtualhubProcessFile(final List<ProcessFileDto> inputs) {
         return inputs.stream()
                 .filter(f -> "VIRTUALHUB".equals(f.getFileType()))
                 .findFirst();
     }
 
-    private static Optional<ProcessFileDto> findProcessFileMatchingDocumentId(List<ProcessFileDto> availableInputs, String documentId) {
+    private static Optional<ProcessFileDto> findProcessFileMatchingDocumentId(final List<ProcessFileDto> availableInputs, final String documentId) {
         return availableInputs.stream()
                 .filter(availableInput -> documentId.equals(availableInput.getDocumentId()))
                 .findFirst();
     }
 
-    private List<String> getDocumentIdsFromRaoRequest(OffsetDateTime taskTimestamp, CoreCCFileResource raoRequestFileResource) throws RaoRequestImportException {
+    private List<String> getDocumentIdsFromRaoRequest(final OffsetDateTime taskTimestamp, final CoreCCFileResource raoRequestFileResource) throws RaoRequestImportException {
         final RequestMessage raoRequestMessage = fileImporter.importRaoRequest(raoRequestFileResource);
 
         final RequestItem requestItem = raoRequestMessage.getPayload().getRequestItems().getRequestItem().stream()
@@ -161,7 +186,7 @@ public class CoreCCAdapterService {
                 .toList();
     }
 
-    private void addProcessFileInInputFilesMap(ProcessFileDto processFileDto, EnumMap<FileType, CoreCCFileResource> inputFiles) {
+    private void addProcessFileInInputFilesMap(final ProcessFileDto processFileDto, final EnumMap<FileType, CoreCCFileResource> inputFiles) {
         try {
             final FileType fileType = FileType.valueOf(processFileDto.getFileType());
             LOGGER.info("Received {} with DocumentId {}", fileType, processFileDto.getDocumentId());
@@ -171,14 +196,14 @@ public class CoreCCAdapterService {
         }
     }
 
-    private CoreCCFileResource getCoreCCFileResource(ProcessFileDto processFileDto) {
+    private CoreCCFileResource getCoreCCFileResource(final ProcessFileDto processFileDto) {
         final String filename = processFileDto.getFilename();
         final String fileUrl = minioAdapter.generatePreSignedUrlFromFullMinioPath(processFileDto.getFilePath(), 1);
         return new CoreCCFileResource(filename, fileUrl);
     }
 
-    private String getCurrentRunId(TaskDto taskDto) {
-        List<ProcessRunDto> runHistory = taskDto.getRunHistory();
+    private String getCurrentRunId(final TaskDto taskDto) {
+        final List<ProcessRunDto> runHistory = taskDto.getRunHistory();
         if (runHistory == null || runHistory.isEmpty()) {
             LOGGER.warn("Failed to handle manual run request on timestamp {} because it has no run history", taskDto.getTimestamp());
             throw new CoreCCAdapterException("Failed to handle manual run request on timestamp because it has no run history");

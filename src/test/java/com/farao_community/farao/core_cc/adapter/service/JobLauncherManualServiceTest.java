@@ -6,7 +6,6 @@
  */
 package com.farao_community.farao.core_cc.adapter.service;
 
-import com.farao_community.farao.core_cc.adapter.exception.TaskNotFoundException;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
@@ -20,13 +19,10 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -41,64 +37,44 @@ class JobLauncherManualServiceTest {
     @MockBean
     private CoreCCAdapterService adapterService;
     @MockBean
-    private RestTemplateBuilder restTemplateBuilder;
-    @MockBean
     private Logger eventsLogger;
+    @MockBean
+    private TaskManagerService taskManagerService;
 
     @Test
     void launchJobWithNoTaskDtoTest() {
-        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
-        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
+        final String timestamp = "2024-09-18T09:30Z";
+        Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.empty());
 
-        List<TaskParameterDto> emptyList = List.of();
-        Assertions.assertThatExceptionOfType(TaskNotFoundException.class)
-                .isThrownBy(() -> service.launchJob("", emptyList));
+        service.launchJob(timestamp, List.of());
+
         Mockito.verifyNoInteractions(adapterService);
     }
 
     @ParameterizedTest
-    @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "PENDING", "RUNNING", "STOPPING"})
-    void launchJobWithNotReadyTask(TaskStatus taskStatus) {
-        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
-        Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
-        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
+    @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "PENDING", "RUNNING", "STOPPING", "INTERRUPTED"})
+    void launchJobWithNotReadyTask(final TaskStatus taskStatus) {
+        final String timestamp = "2024-09-18T09:30Z";
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), taskStatus, null, null, null, null, null, null);
+        Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.of(taskDto));
 
-        service.launchJob("", List.of());
+        service.launchJob(timestamp, List.of());
 
-        Mockito.verifyNoInteractions(adapterService);
         Mockito.verify(eventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.any(OffsetDateTime.class));
     }
 
     @ParameterizedTest
     @EnumSource(value = TaskStatus.class, names = {"READY", "SUCCESS", "ERROR"})
-    void launchJobWithReadyTask(TaskStatus taskStatus) {
-        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
-        Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
-        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
+    void launchJobWithReadyTaskAndParameters(final TaskStatus taskStatus) {
+        final String timestamp = "2024-09-18T09:30Z";
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), taskStatus, null, null, null, null, null, null);
+        Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.of(taskDto));
+        final List<TaskParameterDto> parameters = List.of(new TaskParameterDto("id", "type", "value", "default"));
 
-        service.launchJob("", List.of());
+        service.launchJob(timestamp, parameters);
 
-        Mockito.verify(adapterService, Mockito.times(1)).handleTask(taskDto, false);
-    }
-
-    @Test
-    void launchJobWithReadyTaskAndParameters() {
-        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.READY, null, null, null, null, null, null);
-        Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
-        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
-
-        service.launchJob("", List.of(new TaskParameterDto("id", "type", "value", "default")));
-
-        final ArgumentCaptor<TaskDto> taskDtoCaptor = ArgumentCaptor.forClass(TaskDto.class);
-        Mockito.verify(adapterService, Mockito.times(1)).handleTask(taskDtoCaptor.capture(), Mockito.eq(false));
-        Assertions.assertThat(taskDtoCaptor.getValue())
-                .isNotNull();
-        Assertions.assertThat(taskDtoCaptor.getValue().getParameters())
-                .isNotNull()
-                .isNotEmpty();
+        final ArgumentCaptor<List<TaskParameterDto>> parametersCaptor = ArgumentCaptor.forClass(List.class);
+        Mockito.verify(adapterService, Mockito.times(1)).handleTask(Mockito.eq(taskDto), Mockito.eq(false), parametersCaptor.capture());
+        Assertions.assertThat(parametersCaptor.getValue()).isEqualTo(parameters);
     }
 }

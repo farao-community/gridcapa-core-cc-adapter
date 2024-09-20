@@ -50,12 +50,12 @@ public class JobLauncherController {
         }
     }
 
-    private ResponseEntity<Void> getNotFoundResponseEntity(String timestamp) {
+    private ResponseEntity<Void> getNotFoundResponseEntity(final String timestamp) {
         LOGGER.error("Failed to retrieve task with timestamp {}", timestamp);
         return ResponseEntity.notFound().build();
     }
 
-    private ResponseEntity<Void> getBadRequestResponseEntity(CoreCCAdapterException cccae, String timestamp) {
+    private ResponseEntity<Void> getBadRequestResponseEntity(final CoreCCAdapterException cccae, final String timestamp) {
         LOGGER.error("Error occurred in timestamp {}", timestamp, cccae);
         return ResponseEntity.badRequest().build();
     }

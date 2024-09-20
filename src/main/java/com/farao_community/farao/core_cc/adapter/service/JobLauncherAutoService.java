@@ -45,7 +45,7 @@ public class JobLauncherAutoService {
                 .subscribe(this::runReadyTasks);
     }
 
-    void runReadyTasks(TaskDto updatedTaskDto) {
+    void runReadyTasks(final TaskDto updatedTaskDto) {
         try {
             if (isTaskReadyToBeLaunched(updatedTaskDto)) {
                 final boolean autoTriggerFiletypesDefinedInConfig = !coreCCAdapterConfiguration.autoTriggerFiletypes().isEmpty();
@@ -67,11 +67,11 @@ public class JobLauncherAutoService {
         }
     }
 
-    private static boolean isTaskReadyToBeLaunched(TaskDto updatedTaskDto) {
+    private static boolean isTaskReadyToBeLaunched(final TaskDto updatedTaskDto) {
         return updatedTaskDto.getStatus() == TaskStatus.READY;
     }
 
-    private boolean allTriggerFilesAlreadyUsed(TaskDto updatedTaskDto) {
+    private boolean allTriggerFilesAlreadyUsed(final TaskDto updatedTaskDto) {
         final List<ProcessFileDto> triggerFiles = updatedTaskDto.getInputs().stream()
                 .filter(f -> coreCCAdapterConfiguration.autoTriggerFiletypes().contains(f.getFileType()))
                 .toList();

@@ -45,3 +45,9 @@ core-cc-adapter:
   whitelist:
     - http://test-uri/
     - file:/
+
+retry:
+  backoff:
+    delay: 300
+    multiplier: 2
+  max-attempts: 3

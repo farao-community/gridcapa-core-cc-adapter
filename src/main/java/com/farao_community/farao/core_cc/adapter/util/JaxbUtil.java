@@ -22,7 +22,7 @@ public final class JaxbUtil {
         throw new AssertionError("Utility class should not be constructed");
     }
 
-    public static <T> T unmarshalContent(Class<T> clazz, InputStream inputStream) throws JAXBException {
+    public static <T> T unmarshalContent(final Class<T> clazz, final InputStream inputStream) throws JAXBException {
         final JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
         final Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
         final JAXBElement<T> jaxbElement = jaxbUnmarshaller.unmarshal(new StreamSource(inputStream), clazz);

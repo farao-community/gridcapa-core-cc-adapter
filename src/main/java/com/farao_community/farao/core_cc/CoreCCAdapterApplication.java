@@ -10,6 +10,7 @@ import com.farao_community.farao.core_cc.adapter.configuration.CoreCCAdapterConf
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
@@ -19,6 +20,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @SuppressWarnings("hideutilityclassconstructor")
 @EnableWebMvc
 @EnableConfigurationProperties({CoreCCAdapterConfiguration.class})
+@EnableRetry
 @SpringBootApplication
 public class CoreCCAdapterApplication {
     public static void main(String[] args) {
