@@ -187,7 +187,7 @@ class CoreCCAdapterServiceTest {
 
         final ArgumentCaptor<TaskStatusUpdate> captor = ArgumentCaptor.forClass(TaskStatusUpdate.class);
         Mockito.verifyNoInteractions(coreCCClient);
-        Mockito.verify(eventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.eq(taskDto.getTimestamp()));
+        Mockito.verify(eventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.eq(taskTimestamp.toString()));
         Mockito.verify(streamBridge, Mockito.times(1)).send(Mockito.anyString(), captor.capture());
         final TaskStatusUpdate taskStatusUpdate = captor.getValue();
         Assertions.assertThat(taskStatusUpdate)
@@ -213,7 +213,7 @@ class CoreCCAdapterServiceTest {
 
         final ArgumentCaptor<TaskStatusUpdate> captor = ArgumentCaptor.forClass(TaskStatusUpdate.class);
         Mockito.verifyNoInteractions(coreCCClient);
-        Mockito.verify(eventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.eq(taskDto.getTimestamp()));
+        Mockito.verify(eventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.eq(taskTimestamp.toString()));
         Mockito.verify(streamBridge, Mockito.times(1)).send(Mockito.anyString(), captor.capture());
         final TaskStatusUpdate taskStatusUpdate = captor.getValue();
         Assertions.assertThat(taskStatusUpdate)

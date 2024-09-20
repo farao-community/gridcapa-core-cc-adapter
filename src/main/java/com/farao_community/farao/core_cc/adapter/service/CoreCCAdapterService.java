@@ -74,22 +74,24 @@ public class CoreCCAdapterService {
             final List<ProcessFileDto> inputFiles = getInputProcessFilesFromRaoRequest(taskDto);
             final Optional<TaskDto> taskDtoWithRunOpt = taskManagerService.addNewRunInTaskHistory(timestamp, inputFiles);
             if (taskDtoWithRunOpt.isPresent()) {
-                TaskDto taskDtoWithRun = taskDtoWithRunOpt.get();
-                if (parameters != null && !parameters.isEmpty()) {
-                    taskDtoWithRun = new TaskDto(taskDtoWithRun.getId(), taskDtoWithRun.getTimestamp(), taskDtoWithRun.getStatus(), taskDtoWithRun.getInputs(), taskDtoWithRun.getAvailableInputs(), taskDtoWithRun.getOutputs(), taskDtoWithRun.getProcessEvents(), taskDtoWithRun.getRunHistory(), parameters);
-                }
-
+                final TaskDto taskDtoWithRun = taskDtoWithRunOpt.get();
                 final boolean taskStatusUpdated = taskManagerService.updateTaskStatus(timestamp, TaskStatus.PENDING);
                 if (taskStatusUpdated) {
                     eventsLogger.info("Task launched on TS {}", timestamp);
-                    final CoreCCRequest coreCCRequest = getCoreCCRequest(taskDtoWithRun, inputFiles, isLaunchedAutomatically);
+                    final CoreCCRequest coreCCRequest = getCoreCCRequest(
+                            taskDtoWithRun.getId().toString(),
+                            taskDtoWithRun.getTimestamp(),
+                            getCurrentRunId(taskDtoWithRun),
+                            getParametersToUse(taskDtoWithRun.getParameters(), parameters),
+                            inputFiles,
+                            isLaunchedAutomatically);
                     runAsync(coreCCRequest);
                 } else {
-                    eventsLogger.warn("Failed to launch task on TS {}: could not set task's status to PENDING", taskDto.getTimestamp());
+                    eventsLogger.warn("Failed to launch task on TS {}: could not set task's status to PENDING", timestamp);
                     streamBridge.send(TASK_STATUS_UPDATE, new TaskStatusUpdate(taskDto.getId(), TaskStatus.ERROR));
                 }
             } else {
-                eventsLogger.warn("Failed to launch task on TS {}: could not add new run to the task", taskDto.getTimestamp());
+                eventsLogger.warn("Failed to launch task on TS {}: could not add new run to the task", timestamp);
                 streamBridge.send(TASK_STATUS_UPDATE, new TaskStatusUpdate(taskDto.getId(), TaskStatus.ERROR));
             }
         } catch (RaoRequestImportException rrie) {
@@ -131,15 +133,18 @@ public class CoreCCAdapterService {
         return inputFiles;
     }
 
-    private CoreCCRequest getCoreCCRequest(final TaskDto taskDto, final List<ProcessFileDto> inputFiles, final boolean isLaunchedAutomatically) {
-        final String id = taskDto.getId().toString();
-        final OffsetDateTime taskTimestamp = taskDto.getTimestamp();
+    private CoreCCRequest getCoreCCRequest(final String taskId,
+                                           final OffsetDateTime taskTimestamp,
+                                           final String runId,
+                                           final List<TaskParameterDto> parameters,
+                                           final List<ProcessFileDto> inputFiles,
+                                           final boolean isLaunchedAutomatically) {
         final EnumMap<FileType, CoreCCFileResource> inputFilesMap = new EnumMap<>(FileType.class);
         inputFiles.forEach(inputFile -> addProcessFileInInputFilesMap(inputFile, inputFilesMap));
 
         return new CoreCCRequest(
-                id,
-                getCurrentRunId(taskDto),
+                taskId,
+                runId,
                 taskTimestamp,
                 inputFilesMap.get(FileType.CGM),
                 inputFilesMap.get(FileType.DCCGM),
@@ -149,7 +154,7 @@ public class CoreCCAdapterService {
                 inputFilesMap.get(FileType.RAOREQUEST),
                 inputFilesMap.get(FileType.VIRTUALHUB),
                 isLaunchedAutomatically,
-                taskDto.getParameters()
+                parameters
         );
     }
 
@@ -210,5 +215,13 @@ public class CoreCCAdapterService {
         }
         runHistory.sort((o1, o2) -> o2.getExecutionDate().compareTo(o1.getExecutionDate()));
         return runHistory.get(0).getId().toString();
+    }
+
+    private List<TaskParameterDto> getParametersToUse(List<TaskParameterDto> processParameters, List<TaskParameterDto> runParameters) {
+        if (runParameters != null && !runParameters.isEmpty()) {
+            return runParameters;
+        } else {
+            return processParameters;
+        }
     }
 }
