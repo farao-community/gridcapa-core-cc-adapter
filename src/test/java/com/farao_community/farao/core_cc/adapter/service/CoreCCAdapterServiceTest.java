@@ -7,7 +7,6 @@
 package com.farao_community.farao.core_cc.adapter.service;
 
 import com.farao_community.farao.core_cc.adapter.exception.CoreCCAdapterException;
-import com.farao_community.farao.core_cc.adapter.exception.MissingFileException;
 import com.farao_community.farao.core_cc.adapter.exception.RaoRequestImportException;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileStatus;
@@ -64,14 +63,12 @@ class CoreCCAdapterServiceTest {
 
     @Test
     void missingRaoRequestFileTest() {
-        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.READY, List.of(), List.of(), null, null, null, null);
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse("2024-06-18T09:30Z"), TaskStatus.READY, List.of(), List.of(), null, null, null, null);
 
         Assertions.assertThatExceptionOfType(CoreCCAdapterException.class)
                 .isThrownBy(() -> service.handleTask(taskDto, false))
-                .withMessage("Some input files are missing, the task can't be launched")
-                .havingCause()
-                .isInstanceOf(MissingFileException.class)
-                .withMessageStartingWith("No RAOREQUEST file found in task");
+                .withMessage("Some input files are missing, the task can't be launched");
+        Mockito.verify(eventsLogger, Mockito.times(1)).error("Task can't be launched: No RAOREQUEST file found in task 2024-06-18T09:30Z");
     }
 
     @Test
@@ -133,10 +130,8 @@ class CoreCCAdapterServiceTest {
 
         Assertions.assertThatExceptionOfType(CoreCCAdapterException.class)
                 .isThrownBy(() -> service.handleTask(taskDto, false))
-                .withMessage("Some input files are missing, the task can't be launched")
-                .havingCause()
-                .isExactlyInstanceOf(MissingFileException.class)
-                .withMessage("No file found in task 2024-06-18T09:30Z matching DocumentId test-document-id");
+                .withMessage("Some input files are missing, the task can't be launched");
+        Mockito.verify(eventsLogger, Mockito.times(1)).error("Task can't be launched: No file found in task 2024-06-18T09:30Z matching DocumentId test-document-id");
     }
 
     @Test
@@ -166,10 +161,8 @@ class CoreCCAdapterServiceTest {
 
         Assertions.assertThatExceptionOfType(CoreCCAdapterException.class)
                 .isThrownBy(() -> service.handleTask(taskDto, false))
-                .withMessage("Some input files are missing, the task can't be launched")
-                .havingCause()
-                .isExactlyInstanceOf(MissingFileException.class)
-                .withMessage("No VIRTUALHUB file found in task 2024-06-18T09:30Z");
+                .withMessage("Some input files are missing, the task can't be launched");
+        Mockito.verify(eventsLogger, Mockito.times(1)).error("Task can't be launched: No VIRTUALHUB file found in task 2024-06-18T09:30Z");
     }
 
     @Test
