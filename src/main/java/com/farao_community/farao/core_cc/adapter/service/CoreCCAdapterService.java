@@ -97,7 +97,8 @@ public class CoreCCAdapterService {
         } catch (RaoRequestImportException rrie) {
             throw new CoreCCAdapterException("Error occurred during loading of RAOREQUEST file content", rrie);
         } catch (MissingFileException mfe) {
-            throw new CoreCCAdapterException("Some input files are missing, the task can't be launched", mfe);
+            eventsLogger.error(String.format("Task can't be launched: %s", mfe.getMessage()));
+            throw new CoreCCAdapterException("Some input files are missing, the task can't be launched");
         } catch (CoreCCAdapterException cccae) {
             throw cccae;
         } catch (Exception e) {
