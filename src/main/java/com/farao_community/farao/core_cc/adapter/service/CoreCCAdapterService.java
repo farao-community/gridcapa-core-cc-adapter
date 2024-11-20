@@ -7,6 +7,7 @@
 package com.farao_community.farao.core_cc.adapter.service;
 
 import com.farao_community.farao.core_cc.adapter.FileType;
+import com.farao_community.farao.core_cc.adapter.configuration.GridcapaConfiguration;
 import com.farao_community.farao.core_cc.adapter.exception.CoreCCAdapterException;
 import com.farao_community.farao.core_cc.adapter.exception.MissingFileException;
 import com.farao_community.farao.core_cc.adapter.exception.RaoRequestImportException;
@@ -52,14 +53,16 @@ public class CoreCCAdapterService {
     private final Logger eventsLogger;
     private final TaskManagerService taskManagerService;
     private final StreamBridge streamBridge;
+    private final GridcapaConfiguration gridcapaConfiguration;
 
-    public CoreCCAdapterService(CoreCCClient coreCCClient, FileImporter fileImporter, MinioAdapter minioAdapter, Logger eventsLogger, TaskManagerService taskManagerService, StreamBridge streamBridge) {
+    public CoreCCAdapterService(CoreCCClient coreCCClient, FileImporter fileImporter, MinioAdapter minioAdapter, Logger eventsLogger, TaskManagerService taskManagerService, StreamBridge streamBridge, GridcapaConfiguration gridcapaConfiguration) {
         this.coreCCClient = coreCCClient;
         this.fileImporter = fileImporter;
         this.minioAdapter = minioAdapter;
         this.eventsLogger = eventsLogger;
         this.taskManagerService = taskManagerService;
         this.streamBridge = streamBridge;
+        this.gridcapaConfiguration = gridcapaConfiguration;
     }
 
     public void handleTask(final TaskDto taskDto, final boolean isLaunchedAutomatically) {
@@ -77,7 +80,7 @@ public class CoreCCAdapterService {
                 final TaskDto taskDtoWithRun = taskDtoWithRunOpt.get();
                 final boolean taskStatusUpdated = taskManagerService.updateTaskStatus(timestamp, TaskStatus.PENDING);
                 if (taskStatusUpdated) {
-                    eventsLogger.info("Task launched on TS {}", timestamp);
+                    eventsLogger.info("Task launched on TS {} using Gridcapa version {}", timestamp, gridcapaConfiguration.getVersion());
                     final CoreCCRequest coreCCRequest = getCoreCCRequest(
                             taskDtoWithRun.getId().toString(),
                             taskDtoWithRun.getTimestamp(),

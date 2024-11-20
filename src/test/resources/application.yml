@@ -37,6 +37,8 @@ minio-adapter:
   secret-key: gridcapa-secret
   url: https://minio.test/
 
+gridcapa-version: 5.15.0
+
 core-cc-adapter:
   auto-trigger-filetypes:
     - RAOREQUEST
