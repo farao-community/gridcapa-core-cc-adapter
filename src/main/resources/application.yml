@@ -3,8 +3,6 @@ spring:
     function:
       definition: consumeTaskDtoUpdate
 
-gridcapa-version: 5.15.0
-
 core-cc-adapter:
   process:
     timezone: CET
