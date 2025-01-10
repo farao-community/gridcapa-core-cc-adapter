@@ -37,7 +37,8 @@ public class JobLauncherManualService {
     }
 
     public void launchJob(final String timestamp, final List<TaskParameterDto> parameters) {
-        LOGGER.info("Received order to launch task {}", timestamp);
+        final String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
+        LOGGER.info("Received order to launch task {}", sanifiedTimestamp);
         final Optional<TaskDto> taskDtoOpt = taskManagerService.getTaskFromTimestamp(timestamp);
         if (taskDtoOpt.isPresent()) {
             final TaskDto taskDto = taskDtoOpt.get();
@@ -51,7 +52,6 @@ public class JobLauncherManualService {
                 eventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
             }
         } else {
-            final String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
             LOGGER.error("Failed to launch task with timestamp {}: could not retrieve task from the task-manager", sanifiedTimestamp);
         }
     }

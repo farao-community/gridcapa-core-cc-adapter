@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
@@ -33,9 +35,9 @@ public class UrlValidationService {
             throw new CoreCCInvalidDataException(message);
         }
         try {
-            final URL url = new URL(urlString);
+            final URL url = new URI(urlString).toURL();
             return url.openStream();
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException | IllegalArgumentException e) {
             throw new CoreCCInvalidDataException(String.format("Cannot download file resource from URL '%s'", urlString), e);
         }
     }
