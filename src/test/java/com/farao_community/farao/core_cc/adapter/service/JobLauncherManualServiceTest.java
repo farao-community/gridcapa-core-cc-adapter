@@ -57,7 +57,7 @@ class JobLauncherManualServiceTest {
 
     @Test
     @DisplayName("Testing that a timestamp cannot be launched twice simultaneously.")
-    void testSimultaneity(){
+    void testSimultaneity() {
         final String timestamp = "2024-09-18T09:30Z";
         final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), TaskStatus.ERROR, null, null, null, null, null, null);
         Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.of(taskDto));
