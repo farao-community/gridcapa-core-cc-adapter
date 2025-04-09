@@ -12,14 +12,16 @@ import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.AdditionalAnswers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -32,18 +34,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class JobLauncherManualServiceTest {
 
-    @Autowired
-    private JobLauncherManualService service;
 
-    @MockBean
+    @Mock
     private CoreCCAdapterService adapterService;
-    @MockBean
+    @Mock
     private Logger eventsLogger;
-    @MockBean
+    @Mock
     private TaskManagerService taskManagerService;
+
+    @InjectMocks
+    private JobLauncherManualService service;
 
     @Test
     void launchJobWithNoTaskDtoTest() {
@@ -57,10 +60,11 @@ class JobLauncherManualServiceTest {
 
     @Test
     @DisplayName("Testing that a timestamp cannot be launched twice simultaneously.")
-    void testSimultaneity() {
+    void testSimultaneity() throws InterruptedException {
         final String timestamp = "2024-09-18T09:30Z";
-        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), TaskStatus.ERROR, null, null, null, null, null, null);
-        Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.of(taskDto));
+        Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp))
+                .thenAnswer(AdditionalAnswers
+                        .answersWithDelay(1000, invocation -> Optional.empty()));
         // Use CountDownLatch to ensure both threads start simultaneously
         final CountDownLatch startLatch = new CountDownLatch(1);
         final Runnable runnable = () -> {
@@ -78,7 +82,9 @@ class JobLauncherManualServiceTest {
         // Release both threads at once
         startLatch.countDown();
         // One thread must have been stopped
-        Mockito.verify(taskManagerService, Mockito.times(1)).getTaskFromTimestamp(Mockito.anyString());
+        t1.join();
+        t2.join();
+        Mockito.verify(taskManagerService, Mockito.times(1)).getTaskFromTimestamp(timestamp);
     }
 
     @Test
