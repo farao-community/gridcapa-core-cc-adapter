@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(MockitoExtension.class)
 class JobLauncherManualServiceTest {
 
-
     @Mock
     private CoreCCAdapterService adapterService;
     @Mock
