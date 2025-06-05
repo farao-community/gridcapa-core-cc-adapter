@@ -31,7 +31,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.cloud.stream.function.StreamBridge;
 
 import java.time.OffsetDateTime;
@@ -48,17 +48,17 @@ class CoreCCAdapterServiceTest {
     @Autowired
     private CoreCCAdapterService service;
 
-    @MockBean
+    @MockitoBean
     private CoreCCClient coreCCClient;
-    @MockBean
+    @MockitoBean
     private FileImporter fileImporter;
-    @MockBean
+    @MockitoBean
     private MinioAdapter minioAdapter;
-    @MockBean
+    @MockitoBean
     private Logger eventsLogger;
-    @MockBean
+    @MockitoBean
     private StreamBridge streamBridge;
-    @MockBean
+    @MockitoBean
     private TaskManagerService taskManagerService;
 
     @Test

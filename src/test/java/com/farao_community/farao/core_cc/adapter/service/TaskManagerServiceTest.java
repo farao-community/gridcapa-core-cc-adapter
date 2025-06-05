@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -30,7 +30,7 @@ import java.util.Optional;
  */
 @SpringBootTest
 class TaskManagerServiceTest {
-    @MockBean
+    @MockitoBean
     private RestTemplateBuilder restTemplateBuilder;
     @Autowired
     private TaskManagerService taskManagerService;

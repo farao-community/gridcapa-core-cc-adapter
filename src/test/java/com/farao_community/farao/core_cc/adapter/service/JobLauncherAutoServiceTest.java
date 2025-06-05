@@ -18,7 +18,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.support.MessageBuilder;
 
@@ -41,9 +41,9 @@ class JobLauncherAutoServiceTest {
     @Autowired
     private JobLauncherAutoService jobLauncherAutoService;
 
-    @MockBean
+    @MockitoBean
     private CoreCCAdapterConfiguration coreCCAdapterConfiguration;
-    @MockBean
+    @MockitoBean
     private CoreCCAdapterService adapterService;
 
     @Test
