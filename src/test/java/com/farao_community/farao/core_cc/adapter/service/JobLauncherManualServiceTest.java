@@ -29,8 +29,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
@@ -114,8 +112,10 @@ class JobLauncherManualServiceTest {
                 .thenThrow(new RuntimeException())
                 // then succeeds on second
                 .thenReturn(Optional.of(taskDto));
-        assertThrows(RuntimeException.class, () -> service.launchJob(timestamp, List.of()));
-        service.launchJob(timestamp, List.of());
+        final List<TaskParameterDto> emptyList = List.of();
+        Assertions.assertThatExceptionOfType(RuntimeException.class)
+                .isThrownBy(() -> service.launchJob(timestamp, emptyList));
+        service.launchJob(timestamp, emptyList);
         Mockito.verify(taskManagerService, Mockito.times(2)).getTaskFromTimestamp(Mockito.anyString());
     }
 
